@@ -252,11 +252,29 @@ class GroundedGenerator:
         self.template = template
 
     def answer(self, question: str) -> GroundedAnswer:
-        results = self.retriever.search(question, self.k)
+        return self.answer_from(question, self.retriever.search(question, self.k))
+
+    def answer_from(self, question: str, results: Sequence[SearchResult]) -> GroundedAnswer:
+        """Everything after retrieval: (maybe abstain) → prompt → generate → check citations.
+
+        Split out of :meth:`answer` so callers can time, cache or replace the
+        retrieval step (lessons 11–12) and still get the same answer.
+        """
+        results = list(results)
+        early, top = self.precheck(question, results)
+        if early is not None:
+            return early
+        raw = self.llm.generate(self.messages(question, results))
+        return self.finalize(question, results, raw, top)
+
+    def precheck(
+        self, question: str, results: Sequence[SearchResult]
+    ) -> tuple[GroundedAnswer | None, float | None]:
+        """Abstain before calling the LLM? Returns ``(answer or None, confidence)``."""
         if not results:
             return GroundedAnswer(
                 question=question, answer=REFUSAL, abstained=True, abstain_reason="no_results"
-            )
+            ), None
         top = self.confidence(question, results)
         if self.min_score is not None and top < self.min_score:
             return GroundedAnswer(
@@ -266,11 +284,19 @@ class GroundedGenerator:
                 abstain_reason="low_score",
                 top_score=top,
                 sources=list(results),
-            )
-        messages = build_messages(
+            ), top
+        return None, top
+
+    def messages(self, question: str, results: Sequence[SearchResult]) -> list[Message]:
+        """The prompt this generator sends for ``question`` and ``results``."""
+        return build_messages(
             question, results, system_prompt=self.system_prompt, template=self.template
         )
-        raw = self.llm.generate(messages)
+
+    def finalize(
+        self, question: str, results: Sequence[SearchResult], raw: str, top: float | None
+    ) -> GroundedAnswer:
+        """Turn the model's reply into a :class:`GroundedAnswer` (refusal, citations)."""
         if is_refusal(raw):
             return GroundedAnswer(
                 question=question,
