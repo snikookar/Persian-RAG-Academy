@@ -12,7 +12,7 @@ from parsrag.rag import PersianRAG
 from parsrag.stores.memory import InMemoryVectorStore
 from parsrag.types import Chunk, Document, SearchResult
 
-__version__ = "0.1.0.dev0"
+__version__ = "0.1.0"
 
 __all__ = [
     "LLM",
