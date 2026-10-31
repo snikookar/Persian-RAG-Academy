@@ -28,6 +28,7 @@ EXTRA_MODULES: dict[str, tuple[str, ...]] = {
     "agent": ("langgraph", "langchain_core"),
     "api": ("fastapi", "uvicorn"),
     "loaders": ("pypdf", "docx", "bs4"),
+    "dev": ("matplotlib", "fpdf"),
 }
 
 SMOKE_DOCS = {

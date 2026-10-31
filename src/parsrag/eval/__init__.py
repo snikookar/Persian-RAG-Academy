@@ -1,6 +1,24 @@
-"""Evaluation helpers. Lesson 10 grows this into a full evaluation toolkit."""
+"""Evaluation helpers: QA datasets and retrieval metrics. Lesson 10 adds generation metrics."""
 
 from parsrag.eval.dataset import QAItem, load_qa
-from parsrag.eval.retrieval import hit_rate
+from parsrag.eval.retrieval import (
+    RetrievalReport,
+    contains_evidence,
+    evaluate_retrieval,
+    hit_rate,
+    ndcg_at_k,
+    recall_at_k,
+    reciprocal_rank,
+)
 
-__all__ = ["QAItem", "hit_rate", "load_qa"]
+__all__ = [
+    "QAItem",
+    "RetrievalReport",
+    "contains_evidence",
+    "evaluate_retrieval",
+    "hit_rate",
+    "load_qa",
+    "ndcg_at_k",
+    "recall_at_k",
+    "reciprocal_rank",
+]

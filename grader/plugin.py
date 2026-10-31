@@ -29,6 +29,13 @@ def _format_params(params: dict[str, Any], limit: int = 90) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
+def _skip_reason(report: pytest.TestReport) -> str:
+    longrepr = report.longrepr
+    if isinstance(longrepr, tuple) and len(longrepr) == 3:
+        return str(longrepr[2]).removeprefix("Skipped: ")
+    return str(longrepr or "")
+
+
 def _summarize_exception(call: pytest.CallInfo[None]) -> str:
     if call.excinfo is None:
         return ""
@@ -65,7 +72,13 @@ def pytest_runtest_makereport(
                 "param": _format_params(callspec.params) if callspec else "",
                 "outcome": report.outcome,
                 "when": report.when,
-                "error": _summarize_exception(call) if report.outcome == "failed" else "",
+                "error": (
+                    _summarize_exception(call)
+                    if report.outcome == "failed"
+                    else _skip_reason(report)
+                    if report.outcome == "skipped"
+                    else ""
+                ),
                 "hint": hint,
             }
         )
