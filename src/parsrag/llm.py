@@ -53,14 +53,18 @@ def _words(text: str, ignore: frozenset[str] = frozenset()) -> set[str]:
 
 
 def _numbered_blocks(context: str) -> list[tuple[int | None, str]]:
-    """Split a context at lines starting with ``[n]``; text before the first block gets ``None``."""
+    """Split a context at ``[n] header`` lines; text before the first block gets ``None``.
+
+    The rest of the ``[n]`` line is a source label, not content, so it is dropped.
+    """
     marks = list(_BLOCK.finditer(context))
     if not marks:
         return [(None, context)]
     blocks: list[tuple[int | None, str]] = [(None, context[: marks[0].start()])]
     for m, nxt in zip(marks, [*marks[1:], None], strict=True):
         end = nxt.start() if nxt is not None else len(context)
-        blocks.append((int(m.group(1)), context[m.end() : end]))
+        _header, _, body = context[m.end() : end].partition("\n")  # skip "[n] source" line
+        blocks.append((int(m.group(1)), body))
     return blocks
 
 
