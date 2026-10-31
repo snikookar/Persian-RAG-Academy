@@ -158,7 +158,7 @@ the reason.
 
 ## Writing fixtures
 
-`data/fixtures/` holds a small Persian corpus (the fictional shop «کهربا» and library «سپیدار»)
+`data/fixtures/` holds a small Persian corpus (the fictional shop «کهربا» and library «مهرگان»)
 and the QA sets. When you add or change data:
 
 - **Write every sentence yourself.** Never copy or lightly edit text from news, books, websites,

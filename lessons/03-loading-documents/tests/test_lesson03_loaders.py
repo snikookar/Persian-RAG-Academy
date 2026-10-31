@@ -92,8 +92,8 @@ def test_markdown_sections(ld: ModuleType) -> None:
 
 def test_markdown_loader_records_sections(ld: ModuleType) -> None:
     """load_markdown keeps headings and records them as sections"""
-    doc = ld.load_markdown(CORPUS / "sepidar-annual-report.md")
-    assert doc.title.startswith("گزارش سالانهٔ کتابخانهٔ سپیدار")
+    doc = ld.load_markdown(CORPUS / "mehregan-annual-report.md")
+    assert doc.title.startswith("گزارش سالانهٔ کتابخانهٔ مهرگان")
     titles = [s["title"] for s in doc.metadata["sections"]]
     assert "پروژهٔ دیجیتال‌سازی" in titles
     where = ld.locate(doc, doc.text.index("۹٫۶ میلیارد"))
@@ -141,7 +141,7 @@ def test_visual_order_detection(ld: ModuleType) -> None:
     assert ld.looks_visual_order(to_visual(text))
     assert ld.looks_visual_order(to_visual(shape(text)))
     assert not ld.looks_visual_order("مالس")
-    logical, visual = ld.visual_order_votes(to_visual(shape("کتابخانهٔ سپیدار برای اعضا است")))
+    logical, visual = ld.visual_order_votes(to_visual(shape("کتابخانهٔ مهرگان برای اعضا است")))
     assert visual > logical
 
 
@@ -175,7 +175,7 @@ def test_recover_zwnj(ld: ModuleType, word: str) -> None:
 )
 def test_repair_pdf_text(ld: ModuleType) -> None:
     """repair_pdf_text restores simulated legacy PDF text exactly"""
-    original = _source("sepidar-newsletter.txt")
+    original = _source("mehregan-newsletter.txt")
     assert ld.repair_pdf_text(to_visual(shape(original))) == (original, True)
     assert ld.repair_pdf_text(shape(original)) == (original, False)
     text, visual = ld.repair_pdf_text(to_visual(shape(original)), fix_visual=False)
@@ -192,8 +192,8 @@ def test_repair_pdf_text(ld: ModuleType) -> None:
 def test_load_html(ld: ModuleType) -> None:
     """load_html keeps headings and content, drops menus, banners and footers"""
     pytest.importorskip("bs4", reason=EXTRA)
-    doc = ld.load_document(DOCS / "sepidar-events.html")
-    assert doc.title == "رویدادهای پاییز کتابخانهٔ سپیدار"
+    doc = ld.load_document(DOCS / "mehregan-events.html")
+    assert doc.title == "رویدادهای پاییز کتابخانهٔ مهرگان"
     assert "## هفتهٔ کتاب" in doc.text
     assert "کارگاه داستان‌نویسی | ۴۰ هزار تومان | ۸۰ هزار تومان" in doc.text
     assert f"برگزار می{ZWNJ}کند" in doc.text
@@ -253,9 +253,9 @@ def test_load_pdf_presentation_forms(ld: ModuleType) -> None:
 def test_load_pdf_visual_order(ld: ModuleType) -> None:
     """load_pdf detects and fixes a PDF stored in visual order"""
     pytest.importorskip("pypdf", reason=EXTRA)
-    doc = ld.load_document(DOCS / "sepidar-newsletter.pdf")
+    doc = ld.load_document(DOCS / "mehregan-newsletter.pdf")
     assert doc.metadata["pages"][0]["visual_order"] is True
-    assert doc.text == _source("sepidar-newsletter.txt")
+    assert doc.text == _source("mehregan-newsletter.txt")
 
 
 # ------------------------------------------------------------------ the payoff
@@ -270,7 +270,7 @@ def test_repaired_pdf_is_findable(ld: ModuleType) -> None:
         store = InMemoryVectorStore(HashingEmbedding())
         docs = [
             ld.load_pdf(DOCS / f"{n}.pdf", repair=repair)
-            for n in ("kahroba-catalog", "sepidar-newsletter")
+            for n in ("kahroba-catalog", "mehregan-newsletter")
         ]
         store.add(Chunk(id=d.id, doc_id=d.id, text=normalize(d.text)) for d in docs)
         top = store.search(query, k=1)[0]
@@ -278,5 +278,5 @@ def test_repaired_pdf_is_findable(ld: ModuleType) -> None:
 
     repaired_doc, repaired_score = best(True)
     _, raw_score = best(False)
-    assert repaired_doc == "sepidar-newsletter"
+    assert repaired_doc == "mehregan-newsletter"
     assert repaired_score > raw_score + 0.2

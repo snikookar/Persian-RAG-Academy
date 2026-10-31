@@ -201,7 +201,7 @@ a vector. It is deterministic and dependency-free, which is what tests and CI ne
 explains when to replace it.
 
 **Where does the sample data come from?** Every document and question in `data/fixtures/` was
-written for this repository (a fictional shop «کهربا» and library «سپیدار»); no copyrighted text.
+written for this repository (a fictional shop «کهربا» and library «مهرگان»); no copyrighted text.
 
 ## Contributing
 

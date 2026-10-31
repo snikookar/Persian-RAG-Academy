@@ -21,7 +21,7 @@
       "+ visual-order fix": 0.9379,
       "+ ZWNJ recovery (= load_pdf)": 1.0
     },
-    "sepidar-newsletter": {
+    "mehregan-newsletter": {
       "raw pypdf text": 0.0667,
       "+ NFKC presentation forms": 0.08,
       "+ visual-order fix": 0.8933,

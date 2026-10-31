@@ -175,7 +175,7 @@ def test_run_colloquial_and_multi_part(ag: ModuleType, rag: PersianRAG) -> None:
     agent = ag.AgenticRAG(rag)
     r = agent.run("هزینهٔ پیک تو تهران چقدره؟")
     assert r.query == "هزینهٔ پیک در تهران چقدر است؟" and not r.answer.abstained
-    multi = agent.run("هزینهٔ پیک در تهران چقدر است و ساعت کاری کتابخانهٔ سپیدار چیست؟")
+    multi = agent.run("هزینهٔ پیک در تهران چقدر است و ساعت کاری کتابخانهٔ مهرگان چیست؟")
     assert len(multi.sub_questions) == 2 and multi.llm_calls == 5
     assert len(multi.answer.answer.splitlines()) == 2
 

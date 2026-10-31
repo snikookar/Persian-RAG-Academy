@@ -224,7 +224,7 @@ def chart_pdf(data: dict[str, Any]) -> None:
     fig, ax = plt.subplots(figsize=(6.8, 3.6))
     steps = list(next(iter(data.values())))
     labels = ["raw pypdf", "+ NFKC", "+ visual order", "+ ZWNJ\n(= load_pdf)"]
-    names = {"kahroba-catalog": "logical-order PDF", "sepidar-newsletter": "visual-order PDF"}
+    names = {"kahroba-catalog": "logical-order PDF", "mehregan-newsletter": "visual-order PDF"}
     colors = iter((BLUE, ORANGE))
     _bars(ax, labels, {names[d]: ([data[d][s] for s in steps], next(colors)) for d in data})
     _style(ax, "word recall vs. source text", (0, 1.15))

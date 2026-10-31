@@ -126,7 +126,7 @@ def test_colloquial_question_is_rewritten(agent: AgenticRAG) -> None:
 
 
 def test_multi_part_question(agent: AgenticRAG) -> None:
-    result = agent.run("هزینهٔ پیک در تهران چقدر است و ساعت کاری کتابخانهٔ سپیدار چیست؟")
+    result = agent.run("هزینهٔ پیک در تهران چقدر است و ساعت کاری کتابخانهٔ مهرگان چیست؟")
     assert len(result.sub_questions) == 2
     assert len(result.answer.answer.splitlines()) == 2
     assert result.llm_calls == 5  # one generation per sub-question

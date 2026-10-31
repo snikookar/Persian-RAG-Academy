@@ -110,7 +110,7 @@ Built:
 - Lesson modules: `parsrag.doctor` (00), `parsrag.naive_rag` (01), `parsrag.normalize` (02).
 - Grader: `python -m grader {list,run,check-solutions}` with bilingual report and per-test hints
   (`@pytest.mark.hint(fa=..., en=...)`), learner code loaded via `PARSRAG_LEARNER_PATH`.
-- Fixtures: 10 original, deliberately messy Persian docs (fictional shop «کهربا» and library «سپیدار»)
+- Fixtures: 10 original, deliberately messy Persian docs (fictional shop «کهربا» and library «مهرگان»)
   + 28 QA pairs (4 unanswerable).
 - Lessons 00, 01, 02: Persian READMEs with Mermaid diagrams, starters, tests (10 / 17 / 74 checks).
 - Examples: `rag_in_50_lines.py`, `normalization_impact.py` (with per-step ablation).

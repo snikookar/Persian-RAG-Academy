@@ -67,7 +67,7 @@ def test_estimate_tokens() -> None:
     ids=["fixed", "recursive", "window"],
 )
 def test_spans_point_into_the_source(chunker: Chunker) -> None:
-    doc = load_markdown(CORPUS / "sepidar-annual-report.md")
+    doc = load_markdown(CORPUS / "mehregan-annual-report.md")
     spans = chunker.split(doc.text)
     assert spans
     assert all(doc.text[s.start : s.end] == s.text and s.text == s.text.strip() for s in spans)

@@ -27,7 +27,7 @@ from parsrag.normalize import fix_presentation_forms
 DOCS = Path(__file__).resolve().parent.parent / "data" / "fixtures" / "documents"
 PHRASES = {
     "kahroba-catalog": ["پرفروش‌ترین لوازم برقی", "18 ماه گارانتی", "مرکز خدمات پس از فروش"],
-    "sepidar-newsletter": ["قفسهٔ هوشمند", "امانت شبانه", "می‌توانند کتاب‌های رزروشده"],
+    "mehregan-newsletter": ["قفسهٔ هوشمند", "امانت شبانه", "می‌توانند کتاب‌های رزروشده"],
 }
 
 
