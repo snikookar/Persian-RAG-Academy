@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from parsrag.embeddings import Embedding, HashingEmbedding, TfidfEmbedding
 from parsrag.llm import LLM, FakeLLM, Message
+from parsrag.rag import PersianRAG
 from parsrag.stores.memory import InMemoryVectorStore
 from parsrag.types import Chunk, Document, SearchResult
 
@@ -22,6 +23,7 @@ __all__ = [
     "HashingEmbedding",
     "InMemoryVectorStore",
     "Message",
+    "PersianRAG",
     "SearchResult",
     "TfidfEmbedding",
     "__version__",
