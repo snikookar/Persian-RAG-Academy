@@ -92,14 +92,14 @@ def test_ndcg_at_k(metrics: ModuleType) -> None:
 )
 def test_contains_evidence(metrics: ModuleType) -> None:
     """contains_evidence matches the evidence span despite messy text"""
-    item = QAItem(id="q", question="?", answer="", doc_id="A", evidence="هزینهٔ پیک 45 هزار")
+    item = QAItem(id="q", question="?", answer="", doc_id="A", evidence="هزینهٔ پیک 200 هزار")
     assert metrics.contains_evidence(
-        Chunk(id="A#0", doc_id="A", text="هزينهٔ پيک ۴۵ هزار تومان"), item
+        Chunk(id="A#0", doc_id="A", text="هزينهٔ پيک ۲۰۰ هزار تومان"), item
     )
     assert not metrics.contains_evidence(
-        Chunk(id="B#0", doc_id="B", text="هزینهٔ پیک 45 هزار"), item
+        Chunk(id="B#0", doc_id="B", text="هزینهٔ پیک 200 هزار"), item
     )
-    window = Chunk(id="A#1", doc_id="A", text="پیک", metadata={"window": "هزینهٔ پیک 45 هزار"})
+    window = Chunk(id="A#1", doc_id="A", text="پیک", metadata={"window": "هزینهٔ پیک 200 هزار"})
     assert metrics.contains_evidence(window, item)
     no_ev = QAItem(id="q", question="?", answer="", doc_id="A")
     assert not metrics.contains_evidence(Chunk(id="A#0", doc_id="A", text="هر چیزی"), no_ev)

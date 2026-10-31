@@ -51,7 +51,7 @@ def test_ask_returns_answer_citations_and_timings(client: TestClient) -> None:
     r = client.post("/ask", json={"question": PIK})
     assert r.status_code == 200
     data = r.json()
-    assert "45" in data["text"] and not data["abstained"] and not data["cached"]
+    assert "200" in data["text"] and not data["abstained"] and not data["cached"]
     cite = data["citations"][0]
     assert cite["doc_id"] == "kahroba-shipping" and "پیک" in cite["passage"]
     t = data["timings"]

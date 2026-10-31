@@ -112,7 +112,7 @@ def test_task_of() -> None:
 
 def test_answers_with_citations_in_four_calls(agent: AgenticRAG) -> None:
     result = agent.run(PIK)
-    assert not result.answer.abstained and "45" in result.answer.text
+    assert not result.answer.abstained and "200" in result.answer.text
     assert result.answer.citations
     assert result.trace == ["analyze", "retrieve", "rerank", "grade", "generate", "check", "finish"]
     assert result.llm_calls == 4  # analyze, grade, generate, check
@@ -164,13 +164,13 @@ def test_callable_reviewer(rag: PersianRAG) -> None:
 
     def reviewer(payload: dict[str, Any]) -> dict[str, Any]:
         seen.append(payload)
-        return {"action": "edit", "answer": "هزینهٔ پیک در تهران 45 هزار تومان است [1]."}
+        return {"action": "edit", "answer": "هزینهٔ پیک در تهران 200 هزار تومان است [1]."}
 
     agent = AgenticRAG(rag, hallucinating(rag), max_retries=0, human_review=reviewer)
     result = agent.run(PIK)
     assert seen and seen[0]["draft"].startswith("هزینهٔ پیک") and seen[0]["sources"]
     assert result.trace[-1] == "human_review" and not result.answer.abstained
-    assert "45" in result.answer.text and result.answer.citations
+    assert "200" in result.answer.text and result.answer.citations
 
 
 def test_agent_works_with_any_llm(rag: PersianRAG) -> None:

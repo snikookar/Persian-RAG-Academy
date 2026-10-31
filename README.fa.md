@@ -112,7 +112,7 @@ from parsrag import PersianRAG
 rag = PersianRAG()                                   # پیش‌فرض‌های دوره، کاملاً آفلاین
 rag.add_documents(["data/fixtures/corpus"])          # پوشه، فایل یا Document
 answer = rag.ask("هزینهٔ پیک در تهران چقدر است؟")
-print(answer.text)                                   # هزینهٔ پیک در تهران 45 هزار تومان است.
+print(answer.text)                                   # هزینهٔ پیک در تهران 200 هزار تومان است.
 for c in answer.citations:
     print(c.doc_id, c.section)                       # kahroba-shipping شیوه‌های ارسال سفارش
 print(rag.ask("پایتخت فرانسه کجاست؟").text)          # نمی‌دانم

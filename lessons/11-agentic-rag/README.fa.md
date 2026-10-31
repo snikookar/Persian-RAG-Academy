@@ -45,7 +45,7 @@ agent = AgenticRAG(PersianRAG.course_default(), max_retries=2)
 result = agent.run("هزینهٔ پیک تو تهران چقدره؟")
 
 result.query        # 'هزینهٔ پیک در تهران چقدر است؟'   ← بازنویسی به فارسی معیار
-result.answer.text  # 'هزینهٔ پیک در تهران 45 هزار تومان است.'
+result.answer.text  # 'هزینهٔ پیک در تهران 200 هزار تومان است.'
 result.trace        # ['analyze', 'retrieve', 'rerank', 'grade', 'generate', 'check', 'finish']
 result.llm_calls    # 4
 ```

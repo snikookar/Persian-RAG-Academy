@@ -57,7 +57,7 @@ def build_prompt(question, results):
 rag = NaiveRAG(HashingEmbedding(), FakeLLM(mode="extractive"), chunk_size=400, k=3)
 rag.index(load_documents("data/fixtures/corpus"))
 answer = rag.answer("هزینهٔ پیک در تهران چقدر است؟")
-print(answer.text)                                  # هزینهٔ پیک در تهران 45 هزار تومان است.
+print(answer.text)                                  # هزینهٔ پیک در تهران 200 هزار تومان است.
 print([s.chunk.id for s in answer.sources])         # ['kahroba-shipping#0', ...]
 ```
 

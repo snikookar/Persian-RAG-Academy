@@ -58,7 +58,7 @@ curl -s -X POST http://127.0.0.1:8000/ask -H 'content-type: application/json' \
 ```
 
 ```json
-{"text": "هزینهٔ پیک در تهران 45 هزار تومان است.", "abstained": false, "cached": false,
+{"text": "هزینهٔ پیک در تهران 200 هزار تومان است.", "abstained": false, "cached": false,
  "citations": [{"number": 1, "doc_id": "kahroba-shipping", "section": "شیوه‌های ارسال سفارش",
                 "start": 0, "end": 375, "passage": "# شیوه‌های ارسال سفارش\n\nسفارش های داخل شهر تهران ..."}],
  "timings": {"retrieve_ms": 7.0, "generate_ms": 0.9, "total_ms": 7.9}}
@@ -146,7 +146,7 @@ event: token
 data: {"text": "پیک "}
 ...
 event: done
-data: {"answer": "هزینهٔ پیک در تهران 45 هزار تومان است. [1]", "citations": [...], "timings": {...}}
+data: {"answer": "هزینهٔ پیک در تهران 200 هزار تومان است. [1]", "citations": [...], "timings": {...}}
 ```
 
 رویداد `done` همان `AskResponse` کامل است: ارجاع‌ها **بعد از** تمام شدن متن، روی کل پاسخ اعتبارسنجی می‌شوند (درس ۰۹). اگر مدل وسط کار از مهلت بگذرد، به‌جای `done` یک `event: error` می‌آید. چون پرسش در بدنهٔ `POST` است، در مرورگر از `fetch` و `ReadableStream` استفاده می‌کنیم، نه `EventSource` (که فقط `GET` دارد) — رابط وب درس ۱۳ همین کار را می‌کند.

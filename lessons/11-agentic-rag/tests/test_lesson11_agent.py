@@ -146,7 +146,7 @@ def test_grade_node(ag: ModuleType, rag: PersianRAG) -> None:
     update = agent.grade(state)
     assert agent.llm.calls == calls + 1 and update["trace"] == ["grade"]
     assert 1 <= len(update["relevant"]) <= rag.k
-    assert "45" in update["relevant"][0]["chunk"]["text"]
+    assert "200" in update["relevant"][0]["chunk"]["text"]
     state["query"] = NO_ANSWER
     assert agent.grade(state)["relevant"] == [] and agent.llm.calls == calls + 1
 
@@ -163,7 +163,7 @@ def test_run_simple_question(ag: ModuleType, rag: PersianRAG) -> None:
     result = ag.AgenticRAG(rag).run(PIK)
     assert result.trace == ["analyze", "retrieve", "rerank", "grade", "generate", "check", "finish"]
     assert result.llm_calls == 4 and result.attempts == 1
-    assert not result.answer.abstained and "45" in result.answer.text and result.answer.citations
+    assert not result.answer.abstained and "200" in result.answer.text and result.answer.citations
 
 
 @hint(
@@ -237,7 +237,7 @@ def test_graph_human_in_the_loop(ag: ModuleType, rag: PersianRAG) -> None:
     config = {"configurable": {"thread_id": "lesson11"}}
     paused = ag.run_graph(agent, graph, PIK, config)
     assert "__interrupt__" in paused
-    fixed = "هزینهٔ پیک در تهران 45 هزار تومان است [1]."
+    fixed = "هزینهٔ پیک در تهران 200 هزار تومان است [1]."
     final = graph.invoke(Command(resume={"action": "edit", "answer": fixed}), config)
     assert not final["answer"]["abstained"] and final["answer"]["citations"]
 

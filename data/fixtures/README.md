@@ -47,7 +47,7 @@ The documents imitate real-world Persian text so that normalization
 | mehregan-membership | ZWNJ replaced by spaces, mixed Persian/Latin/Arabic digits |
 | mehregan-hours | tatweel, Arabic-Indic digits |
 | mehregan-digital | Arabic `ي`/`ك`, missing ZWNJ, Arabic presentation forms (`ﺭﺍﻳﮕﺎﻥ`, as copied from PDFs) |
-| mehregan-annual-report | one section in Arabic `ي`/`ك`; Persian thousands/decimal separators (`۱۰٬۴۲۰`, `۹٫۶`) |
+| mehregan-annual-report | one section in Arabic `ي`/`ك`; Persian thousands/decimal separators (`۱۰٬۴۲۰`, `۴۲٫۵`) |
 | mehregan-children | tatweel in headings, Arabic-Indic digits |
 | mehregan-rooms | Arabic `ي`/`ك` |
 | mehregan-interlibrary | ZWNJ replaced by spaces, Latin digits |

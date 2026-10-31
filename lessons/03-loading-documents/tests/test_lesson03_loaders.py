@@ -96,7 +96,7 @@ def test_markdown_loader_records_sections(ld: ModuleType) -> None:
     assert doc.title.startswith("گزارش سالانهٔ کتابخانهٔ مهرگان")
     titles = [s["title"] for s in doc.metadata["sections"]]
     assert "پروژهٔ دیجیتال‌سازی" in titles
-    where = ld.locate(doc, doc.text.index("۹٫۶ میلیارد"))
+    where = ld.locate(doc, doc.text.index("۴۲٫۵ میلیارد"))
     assert where["section"] == "بودجه و هزینه‌ها"
 
 
@@ -195,7 +195,7 @@ def test_load_html(ld: ModuleType) -> None:
     doc = ld.load_document(DOCS / "mehregan-events.html")
     assert doc.title == "رویدادهای پاییز کتابخانهٔ مهرگان"
     assert "## هفتهٔ کتاب" in doc.text
-    assert "کارگاه داستان‌نویسی | ۴۰ هزار تومان | ۸۰ هزار تومان" in doc.text
+    assert "کارگاه داستان‌نویسی | ۲۰۰ هزار تومان | ۴۰۰ هزار تومان" in doc.text
     assert f"برگزار می{ZWNJ}کند" in doc.text
     for junk in ("قبول", "کوکی", "©", "پربازدیدترین", "› رویدادها"):
         assert junk not in doc.text, f"boilerplate left in text: {junk}"
@@ -227,7 +227,7 @@ def test_load_docx(ld: ModuleType) -> None:
     doc = ld.load_document(DOCS / "kahroba-installation-guide.docx")
     assert doc.title == "راهنمای نصب کولر گازی کهربا"
     assert "## هزینهٔ نصب" in doc.text
-    assert "۱۸ هزار | ۱٫۲ میلیون تومان" in doc.text
+    assert "۱۸ هزار | ۵٫۲ میلیون تومان" in doc.text
     assert "‏" not in doc.text
     assert ld.locate(doc, doc.text.index("فیوز"))["section"] == "پیش از نصب"
 

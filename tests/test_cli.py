@@ -33,7 +33,7 @@ def test_ingest_ask_eval(workdir: Path, capsys: pytest.CaptureFixture[str]) -> N
 
     assert main(["ask", "هزینهٔ پیک در تهران چقدر است؟"]) == 0
     out = capsys.readouterr().out
-    assert "45" in out and "[1] kahroba-shipping" in out
+    assert "200" in out and "[1] kahroba-shipping" in out
 
     assert main(["ask", "هزینهٔ پیک در تهران چقدر است؟", "--json"]) == 0
     data = json.loads(capsys.readouterr().out)
@@ -79,7 +79,7 @@ def test_eval_warns_about_bad_questions(workdir: Path, capsys: pytest.CaptureFix
     main(["ingest", str(FIXTURES / "corpus")])
     bad = workdir / "bad.jsonl"
     rows = [
-        {"id": "a", "question": "هزینهٔ پیک؟", "answer": "۴۵", "doc_id": "kahroba-shipping",
+        {"id": "a", "question": "هزینهٔ پیک؟", "answer": "۲۰۰", "doc_id": "kahroba-shipping",
          "evidence": "هزینهٔ پیک در تهران ۹۹ هزار"},
         {"id": "a", "question": "؟", "answer": "-", "doc_id": "nope", "evidence": "x"},
     ]  # fmt: skip

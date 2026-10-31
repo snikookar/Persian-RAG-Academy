@@ -33,7 +33,7 @@ flowchart TB
 # شیوه‌های ارسال سفارش
 
 سفارش‌های داخل شهر تهران با پیک ویژهٔ کهربا حداکثر 24 ساعت پس از ثبت سفارش تحویل داده می‌شوند.
-هزینهٔ پیک در تهران 45 هزار تومان است.
+هزینهٔ پیک در تهران 200 هزار تومان است.
 ...
 
 [2] kahroba-payment › روش‌های پرداخت
@@ -67,7 +67,7 @@ flowchart TB
 from parsrag.generate import GroundedGenerator
 
 answer = generator.answer("هزینهٔ پیک در تهران چقدر است؟")
-answer.answer        # 'هزینهٔ پیک در تهران 45 هزار تومان است. [1]'
+answer.answer        # 'هزینهٔ پیک در تهران 200 هزار تومان است. [1]'
 answer.text          # همان، بدون [1]
 answer.citations[0]  # Citation(number=1, chunk_id='kahroba-shipping#0', doc_id='kahroba-shipping',
                      #          section='شیوه‌های ارسال سفارش', page=None, start=0, end=375, score=...)

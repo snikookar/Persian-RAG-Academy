@@ -189,7 +189,7 @@ def test_load_html_strips_boilerplate() -> None:
     assert doc.title == "رویدادهای پاییز کتابخانهٔ مهرگان"
     assert doc.text.startswith("# رویدادهای پاییز")
     assert "## هفتهٔ کتاب" in doc.text and "### هزینهٔ ثبت‌نام" in doc.text
-    assert "کارگاه داستان‌نویسی | ۴۰ هزار تومان | ۸۰ هزار تومان" in doc.text
+    assert "کارگاه داستان‌نویسی | ۲۰۰ هزار تومان | ۴۰۰ هزار تومان" in doc.text
     assert f"می{ZWNJ}کند" in doc.text  # &zwnj; entity kept
     assert "- کارگاه سواد اطلاعاتی" in doc.text
     for junk in ("قبول", "کوکی", "©", "پربازدیدترین", "analytics", "› رویدادها", "عضویت"):
@@ -202,7 +202,7 @@ def test_load_docx_keeps_structure() -> None:
     doc = load_document(DOCS / "kahroba-installation-guide.docx")
     assert doc.title == "راهنمای نصب کولر گازی کهربا"
     assert "## هزینهٔ نصب" in doc.text and "### زمان مراجعهٔ نصاب" in doc.text
-    assert "۱۸ هزار | ۱٫۲ میلیون تومان" in doc.text
+    assert "۱۸ هزار | ۵٫۲ میلیون تومان" in doc.text
     assert "- نصاب معمولاً ظرف ۳ روز کاری مراجعه می‌کند." in doc.text
     assert "‏" not in doc.text and "KX-2400" in doc.text
     hit = doc.text.index("فیوز")
