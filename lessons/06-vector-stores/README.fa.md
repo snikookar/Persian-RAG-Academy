@@ -1,5 +1,7 @@
 # درس ۰۶ — انباره‌های برداری (Vector Stores)
 
+> **ماژول:** `parsrag.stores` · **کد شروع:** `starter/stores.py` · **تصحیح:** `python -m grader run 06` (۱۵ بررسی) · **پیش‌نیاز:** [درس ۰۵ — برداری‌سازی و بنچمارک بازیابی](../05-embeddings/README.fa.md)
+
 تا این‌جا همهٔ بردارها در یک ماتریس NumPy در حافظه بودند و برای هر پرسش، شباهت پرسش با **همهٔ** قطعه‌ها حساب می‌شد. برای ۱۰۹ قطعهٔ دورهٔ ما این عالی است. ولی اگر ۱۰ میلیون قطعه داشته باشید؟ اگر برنامه ری‌استارت شود و نخواهید همه‌چیز را دوباره برداری کنید؟ اگر چند سرور هم‌زمان بخوانند و بنویسند؟
 
 در این درس `parsrag.stores` را کامل می‌کنیم:
@@ -164,4 +166,12 @@ python -m grader run 06          # ۱۵ بررسی
 - حجم فایل‌های `index/` را برای `InMemoryVectorStore` و `FaissVectorStore("hnsw")` مقایسه کنید. گراف HNSW چقدر حافظهٔ اضافه می‌خواهد؟
 - FAISS برای فیلتر داخل جست‌وجو `IDSelector` دارد. آن را جایگزین «فیلتر بعد از جست‌وجو» کنید و دام فیلتر گزینشی را دوباره بسنجید.
 
-درس بعد: **جست‌وجوی ترکیبی** — BM25 فارسی + برداری + ادغام رتبه‌ای (RRF).
+## مطالعهٔ بیشتر
+
+- Malkov & Yashunin، *Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs* (2016) — مقالهٔ HNSW: [arXiv](https://arxiv.org/abs/1603.09320).
+- Johnson, Douze & Jégou، *Billion-scale similarity search with GPUs* (2017) — مقالهٔ FAISS: [arXiv](https://arxiv.org/abs/1702.08734)؛ و [ویکی FAISS](https://github.com/facebookresearch/faiss/wiki) برای انتخاب نوع نمایه.
+- [pgvector](https://github.com/pgvector/pgvector) — جست‌وجوی برداری داخل PostgreSQL، با نمایه‌های HNSW و IVFFlat.
+
+## درس بعد
+
+[درس ۰۷ — جست‌وجوی ترکیبی](../07-hybrid-search/README.fa.md): BM25 فارسی + برداری + ادغام رتبه‌ای (RRF).

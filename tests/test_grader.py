@@ -56,7 +56,7 @@ def test_load_impl_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
         load_impl("normalize", "parsrag.normalize")
 
 
-@pytest.mark.parametrize("lesson", [f"{n:02d}" for n in range(11)])
+@pytest.mark.parametrize("lesson", [lesson.number for lesson in discover_lessons()])
 def test_starters_fail_until_completed(lesson: str) -> None:
     proc = _grader("run", lesson)
     assert proc.returncode == 1, proc.stdout + proc.stderr
@@ -98,3 +98,19 @@ def test_skipped_checks_are_reported_not_failed(tmp_path: Path) -> None:
     result = run_tests(Lesson(number="98", path=lesson), None)
     assert (result.passed, result.skipped, result.total) == (1, 1, 2)
     assert result.ok
+
+
+def test_starter_problem_classifies_results() -> None:
+    from grader.cli import RunResult, starter_problem
+
+    def res(outcome: str, when: str = "call") -> dict[str, object]:
+        return {"outcome": outcome, "when": when, "error": "boom"}
+
+    failing = RunResult(results=[res("passed"), res("failed")], exit_code=1)
+    assert starter_problem(failing) is None
+    assert "already passes" in str(starter_problem(RunResult(results=[res("passed")])))
+    unloadable = RunResult(results=[res("failed", "setup")] * 2, exit_code=1)
+    assert "cannot be loaded" in str(starter_problem(unloadable))
+    assert starter_problem(RunResult()) == "no checks ran"
+    broken = RunResult(collection_errors=["SyntaxError"], exit_code=2)
+    assert "cannot be collected" in str(starter_problem(broken))

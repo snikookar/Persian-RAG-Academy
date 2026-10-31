@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability / مشکل امنیتی
+    url: https://github.com/snikookar/Persian-RAG-Academy/security/advisories/new
+    about: Please report security problems privately.
+  - name: Documentation site / سایت مستندات
+    url: https://snikookar.github.io/Persian-RAG-Academy/
+    about: The lessons, the library reference and the glossary in Persian.

@@ -1,4 +1,4 @@
-"""Lesson 12 starter — per-client rate limiting with a token bucket.
+"""Lesson 12 starter (part 2 of 2) — per-client rate limiting with a token bucket.
 
 Fill in ``RateLimiter.check``, then: python -m grader run 12
 Reference solution: src/parsrag/api/ratelimit.py.

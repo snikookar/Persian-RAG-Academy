@@ -34,6 +34,8 @@ jobs:
         run: pytest -ra
       - name: Reference solutions pass every lesson
         run: python -m grader check-solutions
+      - name: Every blank starter loads and fails
+        run: python -m grader check-starters
       - name: Eval gate — fail if quality drops below the committed baseline
         run: python -m parsrag.eval gate --baseline docs/eval/baseline.json
       - name: Committed fixtures are reproducible
@@ -61,10 +63,27 @@ jobs:
           parsrag ask "هزینهٔ پیک در تهران چقدر است؟"
           parsrag eval "$GITHUB_WORKSPACE/data/fixtures/qa.jsonl" --baseline b.json --update-baseline
           parsrag eval "$GITHUB_WORKSPACE/data/fixtures/qa.jsonl" --baseline b.json
-      - name: Package builds
+      - name: README / docs-site numbers are reproducible
         run: |
-          pip install build
+          python examples/make_readme_charts.py --no-charts
+          git diff --exit-code docs/eval/readme_numbers.json
+      - name: Package builds and ships only the allowed files
+        run: |
+          pip install build twine
           python -m build
+          python scripts/check_dist.py
+          twine check --strict dist/*
+
+  links:
+    name: Markdown links (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Every relative link and heading anchor in the repository resolves
+        run: python scripts/check_links.py
 
   core-only:
     name: core install only (pydantic + numpy)

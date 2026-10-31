@@ -1,5 +1,7 @@
 # درس ۰۷ — جست‌وجوی ترکیبی (Hybrid search): BM25 فارسی + برداری + RRF
 
+> **ماژول:** `parsrag.retrieval` · **کد شروع:** `starter/retrieval.py` · **تصحیح:** `python -m grader run 07` (۲۰ بررسی) · **پیش‌نیاز:** [درس ۰۶ — انباره‌های برداری](../06-vector-stores/README.fa.md)
+
 تا این‌جا بازیابی (Retrieval) یعنی «بردار پرسش را بساز و نزدیک‌ترین بردارها را پیدا کن». ولی موتورهای جست‌وجو دهه‌ها قبل از برداری‌سازها هم کار می‌کردند، با یک فرمول ساده به اسم **BM25**. در این درس:
 
 1. BM25 را برای فارسی **از صفر** می‌نویسیم (نرمال‌سازی + توکن‌سازی + یک ریشه‌یاب سبک).
@@ -155,7 +157,7 @@ python examples/hybrid_search.py --model st:intfloat/multilingual-e5-small
 | `tokenize` | `normalize` → `lower()` → `re.findall(r"[\w‌]+")`؛ بعد ایست‌واژه‌ها و ریشه‌یابی |
 | `light_stem` | بعد از نیم‌فاصله هر پسوند فهرست؛ پسوند چسبیده فقط اگر ≥ ۳ حرف بماند |
 | `bm25_idf` | `log(1 + (N − df + 0.5) / (df + 0.5))` |
-| `BM25Retriever.add` / `scores` / `search` | فهرست معکوس (Inverted index): `واژه → شمارهٔ قطعه‌ها`؛ فقط امتیاز > ۰ |
+| `BM25Retriever.add` / `scores` / `search` | فهرست وارونه (Inverted index): `واژه → شمارهٔ قطعه‌ها`؛ فقط امتیاز > ۰ |
 | `DenseRetriever.search` | `preprocess` روی پرسش، بعد `store.search` |
 | `reciprocal_rank_fusion` | `Σ w / (k + rank)`، rank از ۱ |
 | `normalize_scores` / `weighted_score_fusion` | min-max، بعد `Σ w · score` |
@@ -179,4 +181,6 @@ python -m grader run 07          # ۲۰ بررسی
 - Cormack, Clarke & Büttcher، *Reciprocal Rank Fusion outperforms Condorcet and individual rank learning methods* (SIGIR 2009) — مقالهٔ RRF و مقدار `k=60`.
 - برای ریشه‌یابی و واحدسازی واقعی فارسی، کتابخانه‌هایی مثل [hazm](https://github.com/roshan-research/hazm) و [parsivar](https://github.com/ICTRC/Parsivar) را ببینید (در این دوره از آن‌ها استفاده نمی‌کنیم تا نصب سبک بماند).
 
-درس بعد: **بازرتبه‌بندی (Reranking)** — ۲۰ نامزد بگیر، با یک مدل دقیق‌تر (و کندتر) دوباره مرتبشان کن و فقط بهترین‌ها را به LLM بده.
+## درس بعد
+
+[درس ۰۸ — بازرتبه‌بندی](../08-reranking/README.fa.md): ۲۰ نامزد بگیر، با یک مدل دقیق‌تر (و کندتر) دوباره مرتبشان کن و فقط بهترین‌ها را به LLM بده.

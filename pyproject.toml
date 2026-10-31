@@ -1,27 +1,47 @@
 [build-system]
-requires = ["hatchling>=1.24"]
+requires = ["hatchling>=1.26", "hatch-fancy-pypi-readme>=24.1"]
 build-backend = "hatchling.build"
 
 [project]
 name = "parsrag"
-version = "0.1.0.dev0"
-description = "Build, evaluate, and ship Retrieval-Augmented Generation for Persian text."
-readme = "README.md"
+version = "0.1.0"
+description = "Build, evaluate, and ship Retrieval-Augmented Generation (RAG) for Persian text — offline-first, with a free Persian course."
+# The PyPI readme is README.md with relative links made absolute (see the hook below).
+dynamic = ["readme"]
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "Samane Nikookar" }]
-keywords = ["rag", "persian", "farsi", "retrieval", "llm", "nlp", "course"]
+keywords = [
+    "persian",
+    "farsi",
+    "rag",
+    "retrieval",
+    "nlp",
+    "llm",
+    "retrieval-augmented-generation",
+    "bm25",
+    "embeddings",
+    "course",
+]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
     "Natural Language :: Persian",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Framework :: FastAPI",
+    "Framework :: Pydantic :: 2",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Indexing",
     "Topic :: Text Processing :: Linguistic",
     "Typing :: Typed",
 ]
@@ -47,19 +67,41 @@ loaders = ["pypdf>=4.0", "python-docx>=1.1", "beautifulsoup4>=4.12"]
 all = ["parsrag[openai,ollama,st,faiss,pgvector,agent,api,loaders]"]
 # Course tooling: charts in the lessons and regenerating the PDF fixtures.
 dev = ["matplotlib>=3.7", "fpdf2>=2.7"]
+# The Persian documentation site (mkdocs build --strict).
+docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5,<10"]
 
 [dependency-groups]
 dev = ["pytest>=8.0", "ruff>=0.5"]
 
 [project.urls]
 Homepage = "https://github.com/snikookar/Persian-RAG-Academy"
+Documentation = "https://snikookar.github.io/Persian-RAG-Academy/"
 Repository = "https://github.com/snikookar/Persian-RAG-Academy"
+Issues = "https://github.com/snikookar/Persian-RAG-Academy/issues"
+Changelog = "https://github.com/snikookar/Persian-RAG-Academy/blob/main/CHANGELOG.md"
 
+# Only what users of the library need ships. Lessons, fixtures, tests, docs and
+# repository tooling never do; CI checks this with scripts/check_dist.py.
 [tool.hatch.build.targets.wheel]
 packages = ["src/parsrag"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/parsrag", "README.md", "LICENSE"]
+only-include = ["src/parsrag", "README.md", "LICENSE", "pyproject.toml", "CHANGELOG.md"]
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+# Relative links work on GitHub but not on PyPI: images → raw files, other links → blob view.
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '(!\[[^\]]*\])\((?!https?://|#)([^)\s]+)\)'
+replacement = '\1(https://raw.githubusercontent.com/snikookar/Persian-RAG-Academy/main/\2)'
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\((?!https?://|#|mailto:)([^)\s]+)\)'
+replacement = '](https://github.com/snikookar/Persian-RAG-Academy/blob/main/\1)'
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "lessons"]

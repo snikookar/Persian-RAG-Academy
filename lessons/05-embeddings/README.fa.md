@@ -1,5 +1,7 @@
 # درس ۰۵ — برداری‌سازی (Embeddings) و یک بنچمارک قابل‌اعتماد
 
+> **ماژول:** `parsrag.embeddings`، `parsrag.eval.retrieval` · **کد شروع:** `starter/metrics.py`، `starter/tfidf.py` · **تصحیح:** `python -m grader run 05` (۲۲ بررسی) · **پیش‌نیاز:** [درس ۰۴ — قطعه‌بندی متن فارسی](../04-chunking/README.fa.md)
+
 تا این‌جا با `HashingEmbedding` کار کردیم: سریع، آفلاین، بدون دانلود. ولی واقعاً چقدر خوب است؟ و اگر بخواهید یک مدل واقعی مثل `multilingual-e5` یا یک API را امتحان کنید، از کجا بفهمید بهتر است؟
 
 در این درس سه کار می‌کنیم:
@@ -174,4 +176,6 @@ python -m grader run 05          # ۲۲ بررسی
 - **ParsBench** — جعبه‌ابزار متن‌باز برای ارزیابی مدل‌های زبانی بزرگ روی وظایف فارسی: [مستندات](https://parsbench.github.io/ParsBench) و [بستهٔ PyPI](https://pypi.org/project/parsbench).
 - **awesome-persian-nlp-ir** — فهرستی گردآوری‌شده از ابزارها، داده‌ها و مدل‌های پردازش زبان فارسی و بازیابی اطلاعات: [GitHub](https://github.com/mhbashari/awesome-persian-nlp-ir).
 
-درس بعد: **انباره‌های برداری (Vector stores)** — از ماتریس NumPy در حافظه تا FAISS و pgvector، و این‌که جست‌وجوی «تقریبی» یعنی چه.
+## درس بعد
+
+[درس ۰۶ — انباره‌های برداری](../06-vector-stores/README.fa.md): از ماتریس NumPy در حافظه تا FAISS و pgvector، و این‌که جست‌وجوی «تقریبی» یعنی چه.

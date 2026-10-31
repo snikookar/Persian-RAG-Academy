@@ -41,3 +41,6 @@ models/
 
 # parsrag indexes
 .parsrag/
+
+# MkDocs output
+site/
