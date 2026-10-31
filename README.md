@@ -40,7 +40,9 @@ python -m grader run 00
 | 08 | [Reranking](lessons/08-reranking/README.fa.md) | بازرتبه‌بندی |
 | 09 | [Grounded generation](lessons/09-grounded-generation/README.fa.md) | تولید مستند با ارجاع و «نمی‌دانم» |
 | 10 | [Evaluation](lessons/10-evaluation/README.fa.md) | ارزیابی و دروازهٔ CI |
-| 11–13 | coming soon — see [ROADMAP.md](ROADMAP.md) | به‌زودی |
+| 11 | [Agentic RAG with LangGraph](lessons/11-agentic-rag/README.fa.md) | RAG عامل‌محور با LangGraph |
+| 12 | [Production API](lessons/12-production-api/README.fa.md) | API تولیدی (FastAPI، استریم، کش، Docker) |
+| 13 | [Capstone: RAG over your own documents](lessons/13-capstone/README.fa.md) | پروژهٔ پایانی: RAG روی اسناد خودتان |
 
 ## License
 
