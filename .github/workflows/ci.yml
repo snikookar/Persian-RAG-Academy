@@ -46,6 +46,7 @@ jobs:
           python examples/vector_store_latency.py --sizes 2000 --queries 50
           python examples/hybrid_search.py
           python examples/reranking.py
+          python examples/grounded_answers.py
           python -m parsrag.doctor
       - name: Package builds
         run: |
