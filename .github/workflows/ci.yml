@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install (core only — no optional extras, no API keys)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest ruff
+      - name: Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Pytest
+        run: pytest
+      - name: Reference solutions pass every lesson
+        run: python -m grader check-solutions
+      - name: Examples run offline
+        run: |
+          python examples/rag_in_50_lines.py
+          python examples/normalization_impact.py
+          python -m parsrag.doctor
+      - name: Package builds
+        run: |
+          pip install build
+          python -m build
