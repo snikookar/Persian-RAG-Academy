@@ -1,0 +1,119 @@
+# Persian documentation site (GitHub Pages).
+#   pip install -e ".[docs]"
+#   mkdocs serve            # http://127.0.0.1:8000
+#   mkdocs build --strict   # what CI runs
+# The lesson pages are generated from lessons/*/README.fa.md by scripts/mkdocs_hooks.py,
+# so the lesson text lives in one place only.
+
+site_name: آکادمی RAG فارسی
+site_description: دورهٔ رایگان و پروژه‌محور RAG برای متن فارسی، به‌همراه کتابخانهٔ parsrag
+site_author: Samane Nikookar
+site_url: https://snikookar.github.io/Persian-RAG-Academy/
+repo_url: https://github.com/snikookar/Persian-RAG-Academy
+repo_name: snikookar/Persian-RAG-Academy
+edit_uri: edit/main/docs/
+copyright: کد و متن با مجوز MIT · داده‌های نمونه برای همین دوره نوشته شده‌اند
+
+docs_dir: docs
+exclude_docs: |
+  README.md
+  RELEASING.md
+  *.mmd
+
+hooks:
+  - scripts/mkdocs_hooks.py
+
+theme:
+  name: material
+  language: fa
+  direction: rtl
+  font:
+    text: Vazirmatn
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: حالت تیره
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: حالت روشن
+  features:
+    - content.code.copy
+    - content.action.edit
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search:
+      separator: '[\s\-‌،؛؟.,:;!?]+'
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    absolute_links: warn
+    unrecognized_links: warn
+
+nav:
+  - خانه: index.md
+  - درس‌ها:
+      - "۰۰ · آماده‌سازی محیط": lessons/00-setup.md
+      - "۰۱ · RAG در ۵۰ خط": lessons/01-rag-in-50-lines.md
+      - "۰۲ · نرمال‌سازی فارسی": lessons/02-normalization.md
+      - "۰۳ · بارگذاری اسناد": lessons/03-loading-documents.md
+      - "۰۴ · قطعه‌بندی": lessons/04-chunking.md
+      - "۰۵ · برداری‌سازی": lessons/05-embeddings.md
+      - "۰۶ · انباره‌های برداری": lessons/06-vector-stores.md
+      - "۰۷ · جست‌وجوی ترکیبی": lessons/07-hybrid-search.md
+      - "۰۸ · بازرتبه‌بندی": lessons/08-reranking.md
+      - "۰۹ · تولید مستند": lessons/09-grounded-generation.md
+      - "۱۰ · ارزیابی": lessons/10-evaluation.md
+      - "۱۱ · RAG عامل‌محور": lessons/11-agentic-rag.md
+      - "۱۲ · API تولیدی": lessons/12-production-api.md
+      - "۱۳ · پروژهٔ پایانی": lessons/13-capstone.md
+  - مرجع:
+      - کتابخانهٔ parsrag: reference/library.md
+      - خط فرمان (CLI): reference/cli.md
+      - API وب (HTTP): reference/http-api.md
+  - نتیجه‌ها:
+      - نمودارها و عددها: results.md
+      - گزارش ارزیابی پایپ‌لاین: eval/report.md
+  - واژه‌نامه: glossary.fa.md
