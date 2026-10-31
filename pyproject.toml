@@ -88,3 +88,4 @@ known-first-party = ["parsrag", "grader"]
 "lessons/*/tests/*.py" = ["E501"]
 # Long OOXML content-type strings and Persian sample sentences.
 "data/fixtures/build_fixtures.py" = ["E501"]
+"examples/*.py" = ["E501"]
