@@ -29,7 +29,15 @@ ROOT = Path(__file__).resolve().parents[1]
 SDIST_FILES = {"PKG-INFO", ".gitignore", "README.md", "LICENSE", "pyproject.toml", "CHANGELOG.md"}
 SDIST_DIRS = ("src/parsrag/",)
 REQUIRED_SDIST = {"PKG-INFO", "README.md", "LICENSE", "pyproject.toml", "CHANGELOG.md"}
-REQUIRED_WHEEL = {"parsrag/__init__.py", "parsrag/py.typed", "parsrag/api/static/index.html"}
+REQUIRED_WHEEL = {
+    "parsrag/__init__.py",
+    "parsrag/py.typed",
+    "parsrag/api/static/index.html",
+    "parsrag/api/static/fonts/Vazirmatn-Regular.woff2",
+    "parsrag/api/static/fonts/Vazirmatn-Medium.woff2",
+    "parsrag/api/static/fonts/Vazirmatn-Bold.woff2",
+    "parsrag/api/static/fonts/OFL.txt",
+}
 FORBIDDEN_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 RELATIVE_LINK = re.compile(r"\]\((?!https?://|#|mailto:)[^)\s]+\)")
 
