@@ -30,6 +30,9 @@ dependencies = [
     "numpy>=1.24",
 ]
 
+[project.scripts]
+parsrag = "parsrag.cli:main"
+
 [project.optional-dependencies]
 # We speak the OpenAI-compatible HTTP protocol directly, so any compatible
 # server (OpenAI, vLLM, OpenRouter, Ollama's /v1 endpoint, ...) works.
