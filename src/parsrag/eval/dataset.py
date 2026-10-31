@@ -13,12 +13,16 @@ class QAItem(BaseModel):
 
     ``doc_id`` is the id of the document that contains the answer, or ``None``
     when the answer is *not* in the corpus (the system should say "I don't know").
+    ``evidence`` is a short span copied verbatim from that document which
+    contains the answer. It allows *passage-level* evaluation: did the
+    retrieved chunk actually contain the answer, not just the right document?
     """
 
     id: str
     question: str
     answer: str
     doc_id: str | None = None
+    evidence: str | None = None
 
     @property
     def answerable(self) -> bool:

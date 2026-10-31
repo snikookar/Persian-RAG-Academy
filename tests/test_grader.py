@@ -28,7 +28,7 @@ def _grader(*args: str) -> subprocess.CompletedProcess[str]:
 
 def test_discover_lessons() -> None:
     numbers = [lesson.number for lesson in discover_lessons()]
-    assert numbers[:3] == ["00", "01", "02"]
+    assert numbers[:4] == ["00", "01", "02", "03"]
     assert find_lesson("2").slug == "02-normalization"
 
 
@@ -56,7 +56,7 @@ def test_load_impl_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
         load_impl("normalize", "parsrag.normalize")
 
 
-@pytest.mark.parametrize("lesson", ["00", "01", "02"])
+@pytest.mark.parametrize("lesson", ["00", "01", "02", "03", "04", "05", "06"])
 def test_starters_fail_until_completed(lesson: str) -> None:
     proc = _grader("run", lesson)
     assert proc.returncode == 1, proc.stdout + proc.stderr
@@ -81,3 +81,20 @@ def test_check_solutions() -> None:
     proc = _grader("check-solutions")
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "All reference solutions pass." in proc.stdout
+
+
+def test_skipped_checks_are_reported_not_failed(tmp_path: Path) -> None:
+    """A check skipped for a missing optional extra shows its reason and does not fail."""
+    lesson = tmp_path / "lessons" / "98-skip-demo"
+    (lesson / "tests").mkdir(parents=True)
+    (lesson / "tests" / "test_demo.py").write_text(
+        "import pytest\n\n"
+        "def test_ok():\n    assert True\n\n"
+        "def test_needs_extra():\n"
+        "    pytest.importorskip('no_such_module_xyz', reason='pip install demo')\n"
+    )
+    from grader.cli import Lesson, run_tests
+
+    result = run_tests(Lesson(number="98", path=lesson), None)
+    assert (result.passed, result.skipped, result.total) == (1, 1, 2)
+    assert result.ok

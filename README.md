@@ -32,7 +32,11 @@ python -m grader run 00
 | 00 | [Setup](lessons/00-setup/README.fa.md) | آماده‌سازی محیط |
 | 01 | [RAG in 50 lines](lessons/01-rag-in-50-lines/README.fa.md) | RAG در ۵۰ خط |
 | 02 | [Persian normalization](lessons/02-normalization/README.fa.md) | نرمال‌سازی متن فارسی |
-| 03–13 | coming soon — see [ROADMAP.md](ROADMAP.md) | به‌زودی |
+| 03 | [Loading Persian documents](lessons/03-loading-documents/README.fa.md) | بارگذاری اسناد فارسی (PDF، DOCX، HTML) |
+| 04 | [Chunking Persian text](lessons/04-chunking/README.fa.md) | قطعه‌بندی متن فارسی |
+| 05 | [Embeddings & a retrieval benchmark](lessons/05-embeddings/README.fa.md) | برداری‌سازی و بنچمارک بازیابی |
+| 06 | [Vector stores](lessons/06-vector-stores/README.fa.md) | انباره‌های برداری (FAISS، pgvector) |
+| 07–13 | coming soon — see [ROADMAP.md](ROADMAP.md) | به‌زودی |
 
 ## License
 
