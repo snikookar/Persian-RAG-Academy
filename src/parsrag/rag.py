@@ -36,7 +36,7 @@ from pydantic import BaseModel, Field
 from parsrag.chunking import Chunker, RecursiveChunker, chunk_document
 from parsrag.config import RAGConfig, load_config, make_embedding, make_llm
 from parsrag.embeddings import Embedding, HashingEmbedding
-from parsrag.eval.dataset import QAItem, load_qa
+from parsrag.eval.dataset import QAItem, load_qa, validate_qa
 from parsrag.generate import (
     Citation,
     GroundedAnswer,
@@ -223,10 +223,10 @@ class PersianRAG:
             if isinstance(item, Document):
                 batch.append(item)
             else:
-                added += self._index(batch)
+                added += self._index(batch) if batch else 0
                 batch = []
                 added += self.add_path(item)
-        return added + self._index(batch)
+        return added + (self._index(batch) if batch else 0)
 
     def add_texts(self, texts: Sequence[str], ids: Sequence[str] | None = None) -> int:
         """Index raw strings as documents (ids default to ``text-<n>``)."""
@@ -477,4 +477,5 @@ __all__ = [
     "StreamEvent",
     "Timings",
     "answer_payload",
+    "validate_qa",
 ]

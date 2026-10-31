@@ -88,6 +88,9 @@ class ProviderConfig(_Section):
     api_key_env: str = "OPENAI_API_KEY"
     timeout: float = 60.0
     temperature: float = 0.0
+    #: Embedding prefixes, e.g. "query: " / "passage: " for the E5 family.
+    query_prefix: str = ""
+    document_prefix: str = ""
 
 
 class RAGConfig(_Section):
@@ -148,13 +151,19 @@ def make_embedding(cfg: ProviderConfig) -> Embedding:
 
         if not cfg.model:
             raise ValueError("embedding.model is required for sentence-transformers")
-        return SentenceTransformerEmbedding(cfg.model)
+        return SentenceTransformerEmbedding(
+            cfg.model, query_prefix=cfg.query_prefix, document_prefix=cfg.document_prefix
+        )
     if provider == "openai":
         from parsrag.embeddings import OpenAICompatibleEmbedding
 
         if not cfg.model:
             raise ValueError("embedding.model is required for the openai provider")
-        kwargs: dict[str, Any] = {"api_key": os.environ.get(cfg.api_key_env)}
+        kwargs: dict[str, Any] = {
+            "api_key": os.environ.get(cfg.api_key_env),
+            "query_prefix": cfg.query_prefix,
+            "document_prefix": cfg.document_prefix,
+        }
         if cfg.base_url:
             kwargs["base_url"] = cfg.base_url
         return OpenAICompatibleEmbedding(cfg.model, **kwargs)

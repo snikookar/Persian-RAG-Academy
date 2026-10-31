@@ -137,6 +137,7 @@ def cmd_ask(args: argparse.Namespace) -> int:
 
 
 def cmd_eval(args: argparse.Namespace) -> int:
+    from parsrag.eval.dataset import load_qa, validate_qa
     from parsrag.eval.gate import (
         all_changes,
         compare_metrics,
@@ -147,6 +148,14 @@ def cmd_eval(args: argparse.Namespace) -> int:
     from parsrag.eval.pipeline import save_report
 
     rag, _, index = _load(args)
+    problems = validate_qa(load_qa(args.qa), rag.documents)
+    for problem in problems:
+        print(f"warning: {problem}", file=sys.stderr)
+    if problems:
+        print(
+            f"{len(problems)} problem(s) in {args.qa} — fix them before trusting the numbers",
+            file=sys.stderr,
+        )
     if args.calibrate or args.calibrate_on:
         source = args.calibrate_on or args.qa
         threshold = rag.calibrate(source)

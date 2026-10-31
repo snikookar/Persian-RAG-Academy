@@ -73,3 +73,17 @@ def test_config_file_and_errors(workdir: Path) -> None:
     assert main(["ask", "کافه کی تعطیل است؟", "--config", "parsrag.json"]) == 0
     (workdir / "empty").mkdir()
     assert main(["ingest", "empty", "--config", "parsrag.json"]) == 1
+
+
+def test_eval_warns_about_bad_questions(workdir: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    main(["ingest", str(FIXTURES / "corpus")])
+    bad = workdir / "bad.jsonl"
+    rows = [
+        {"id": "a", "question": "هزینهٔ پیک؟", "answer": "۴۵", "doc_id": "kahroba-shipping",
+         "evidence": "هزینهٔ پیک در تهران ۹۹ هزار"},
+        {"id": "a", "question": "؟", "answer": "-", "doc_id": "nope", "evidence": "x"},
+    ]  # fmt: skip
+    bad.write_text("\n".join(json.dumps(r, ensure_ascii=False) for r in rows), encoding="utf-8")
+    assert main(["eval", str(bad)]) == 0
+    err = capsys.readouterr().err
+    assert "evidence not found" in err and "duplicate id" in err and "unknown doc_id" in err

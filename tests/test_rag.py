@@ -184,3 +184,23 @@ def test_make_providers_lazily() -> None:
 def test_fixture_benchmark_unchanged() -> None:
     docs, qa = load_fixture_benchmark(FIXTURES)
     assert len(docs) == 25 and len(qa) == 66
+
+
+def test_validate_qa_finds_problems() -> None:
+    from parsrag.eval import QAItem, validate_qa
+
+    docs = [SHOP]
+    items = [
+        QAItem(id="1", question="هزینهٔ پیک؟", answer="۴۵", doc_id="shop", evidence="۴۵ هزار تومان"),
+        QAItem(id="2", question="؟", answer="-", doc_id="shop"),
+        QAItem(id="2", question=" ", answer="-", doc_id=None, evidence="x"),
+        QAItem(id="3", question="پیک؟", answer="-", doc_id="shop", evidence="۵۰ هزار تومان"),
+    ]
+    problems = validate_qa(items, docs)
+    assert problems == [
+        "2: answerable but has no evidence span",
+        "2: duplicate id",
+        "2: empty question",
+        "2: unanswerable (no doc_id) but has evidence",
+        "3: evidence not found in 'shop': '۵۰ هزار تومان'",
+    ]
