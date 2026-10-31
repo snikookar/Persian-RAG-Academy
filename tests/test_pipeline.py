@@ -13,9 +13,9 @@ from parsrag.normalize import normalize
 
 def test_load_qa_fixture() -> None:
     items = load_qa(QA_FILE)
-    assert len(items) >= 25
+    assert len(items) >= 60
     assert len({i.id for i in items}) == len(items)
-    assert sum(not i.answerable for i in items) >= 3
+    assert sum(not i.answerable for i in items) >= 5
     doc_ids = {p.stem for p in CORPUS.glob("*.md")}
     assert {i.doc_id for i in items if i.answerable} <= doc_ids
 
@@ -55,8 +55,8 @@ def test_normalization_gain_on_fixtures() -> None:
         rag = NaiveRAG(HashingEmbedding(), FakeLLM(), chunk_size=300, preprocess=pre)
         rag.index(docs)
         scores[name] = (hit_rate(qa, rag.retrieve, 1), hit_rate(qa, rag.retrieve, 3))
-    assert scores["raw"] == (19 / 24, 22 / 24)
-    assert scores["normalized"] == (23 / 24, 24 / 24)
+    assert scores["raw"] == (48 / 59, 51 / 59)
+    assert scores["normalized"] == (53 / 59, 56 / 59)
 
 
 def test_doctor(capsys) -> None:  # type: ignore[no-untyped-def]
