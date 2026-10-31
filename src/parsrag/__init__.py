@@ -6,7 +6,7 @@ providers live behind optional extras and are imported lazily.
 
 from __future__ import annotations
 
-from parsrag.embeddings import Embedding, HashingEmbedding
+from parsrag.embeddings import Embedding, HashingEmbedding, TfidfEmbedding
 from parsrag.llm import LLM, FakeLLM, Message
 from parsrag.stores.memory import InMemoryVectorStore
 from parsrag.types import Chunk, Document, SearchResult
@@ -23,5 +23,6 @@ __all__ = [
     "InMemoryVectorStore",
     "Message",
     "SearchResult",
+    "TfidfEmbedding",
     "__version__",
 ]
