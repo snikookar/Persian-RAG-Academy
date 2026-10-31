@@ -86,6 +86,8 @@ known-first-party = ["parsrag", "grader"]
 [tool.ruff.lint.per-file-ignores]
 # Bilingual hint strings in lesson tests are easier to read on one line.
 "lessons/*/tests/*.py" = ["E501"]
+# Starters keep the imports the learner will need once the TODOs are filled in.
+"lessons/*/starter/*.py" = ["F401", "RUF100"]
 # Long OOXML content-type strings and Persian sample sentences.
 "data/fixtures/build_fixtures.py" = ["E501"]
 "examples/*.py" = ["E501"]

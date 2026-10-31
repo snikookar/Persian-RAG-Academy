@@ -7,7 +7,6 @@ from parsrag.eval import load_qa
 from parsrag.eval.retrieval import match_key
 
 
-
 def test_paraphrase_set_links_back_to_originals() -> None:
     originals = {q.id: q for q in load_qa(QA_FILE)}
     items = load_qa(QA_PARAPHRASE_FILE)
