@@ -1,5 +1,7 @@
 # درس ۰۹ — تولید مستند (Grounded generation): ارجاع به منبع و «نمی‌دانم»ِ صادقانه
 
+> **ماژول:** `parsrag.generate` · **کد شروع:** `starter/generate.py` · **تصحیح:** `python -m grader run 09` (۲۰ بررسی) · **پیش‌نیاز:** [درس ۰۸ — بازرتبه‌بندی](../08-reranking/README.fa.md)
+
 تا این‌جا روی **بازیابی** کار کردیم. حالا نوبت حرف زدن LLM است — و دو خطر بزرگ:
 
 1. **توهم (Hallucination)**: مدل جوابی می‌سازد که در هیچ سندی نیست، با اعتمادبه‌نفس کامل.
@@ -183,4 +185,6 @@ python -m grader run 09          # ۲۰ بررسی
 - Gao et al.، *Enabling Large Language Models to Generate Text with Citations* (ALCE، 2023) — معیارهای کیفیت ارجاع.
 - Rajpurkar, Jia & Liang، *Know What You Don't Know: Unanswerable Questions for SQuAD* (2018) — چرا مجموعهٔ پرسش باید پرسش بی‌پاسخ داشته باشد.
 
-درس بعد: **ارزیابی (Evaluation)** — همهٔ این‌ها را در یک گزارش جمع می‌کنیم و آن را به یک دروازهٔ CI تبدیل می‌کنیم.
+## درس بعد
+
+[درس ۱۰ — ارزیابی](../10-evaluation/README.fa.md): همهٔ این‌ها را در یک گزارش جمع می‌کنیم و آن را به یک دروازهٔ CI تبدیل می‌کنیم.

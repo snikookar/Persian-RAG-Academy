@@ -1,4 +1,4 @@
-"""Lesson 12 starter — an answer cache keyed on the normalised question.
+"""Lesson 12 starter (part 1 of 2) — an answer cache keyed on the normalised question.
 
 Fill in every function marked TODO, then check your work:
 

@@ -1,5 +1,7 @@
 # درس ۰۸ — بازرتبه‌بندی (Reranking): زیاد بیاور، کم بفرست
 
+> **ماژول:** `parsrag.rerank` · **کد شروع:** `starter/rerank.py` · **تصحیح:** `python -m grader run 08` (۲۱ بررسی) · **پیش‌نیاز:** [درس ۰۷ — جست‌وجوی ترکیبی](../07-hybrid-search/README.fa.md)
+
 بازیاب‌های درس ۰۷ سریع‌اند چون هر قطعه را **جداگانه** و با یک فرمول ساده امتیاز می‌دهند: بردار پرسش · بردار قطعه، یا جمع BM25. هیچ‌کدام پرسش و قطعه را **کنار هم** نمی‌خوانند. یک **بازرتبه‌ساز (Reranker)** دقیقاً همین کار را می‌کند — دقیق‌تر ولی کندتر — پس فقط روی چند ده نامزد اول اجرا می‌شود:
 
 ```mermaid
@@ -150,4 +152,6 @@ python -m grader run 08          # ۲۱ بررسی
 - [مستندات CrossEncoder در sentence-transformers](https://www.sbert.net/docs/cross_encoder/usage/usage.html) و کارت مدل [bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3).
 - Sun et al.، *Is ChatGPT Good at Search? Investigating LLMs as Re-Ranking Agents* (2023) — بازرتبه‌بندی فهرستی با LLM.
 
-درس بعد: **تولید مستند (Grounded generation)** — پاسخ با ارجاع به منبع، و شجاعت گفتن «نمی‌دانم».
+## درس بعد
+
+[درس ۰۹ — تولید مستند](../09-grounded-generation/README.fa.md): پاسخ با ارجاع به منبع، و شجاعت گفتن «نمی‌دانم».
