@@ -56,7 +56,7 @@ def test_load_impl_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
         load_impl("normalize", "parsrag.normalize")
 
 
-@pytest.mark.parametrize("lesson", ["00", "01", "02", "03", "04", "05", "06", "07"])
+@pytest.mark.parametrize("lesson", ["00", "01", "02", "03", "04", "05", "06", "07", "08"])
 def test_starters_fail_until_completed(lesson: str) -> None:
     proc = _grader("run", lesson)
     assert proc.returncode == 1, proc.stdout + proc.stderr
