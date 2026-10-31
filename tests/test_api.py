@@ -188,6 +188,41 @@ def test_sse_format() -> None:
 def test_ui_is_served(client: TestClient) -> None:
     r = client.get("/")
     assert r.status_code == 200 and 'dir="rtl"' in r.text
+    # Persian file picker instead of the browser's English "Choose Files / No file chosen"
+    assert "انتخاب فایل" in r.text and "فایلی انتخاب نشده" in r.text
+    assert 'class="visually-hidden" type="file"' in r.text  # still a real, focusable input
+
+
+def test_ui_fonts_are_bundled(client: TestClient) -> None:
+    html = client.get("/").text
+    for name in ("Vazirmatn-Regular.woff2", "Vazirmatn-Medium.woff2", "Vazirmatn-Bold.woff2"):
+        assert f"static/fonts/{name}" in html
+        r = client.get(f"/static/fonts/{name}")
+        assert r.status_code == 200 and r.headers["content-type"] == "font/woff2"
+        assert r.content[:4] == b"wOF2"
+    licence = client.get("/static/fonts/OFL.txt")
+    assert licence.status_code == 200 and "SIL Open Font License" in licence.text
+    assert "https://" not in html.split("<script>")[0]  # no external stylesheet or font
+    assert client.get("/static/fonts/../app.py").status_code == 404
+    assert client.get("/static/fonts/index.html").status_code == 404
+
+
+def test_ui_translates_every_api_error_code(client: TestClient) -> None:
+    """The API may answer in English; the UI maps every error code to Persian."""
+    import re
+
+    import parsrag.api.app as app_module
+
+    source = Path(app_module.__file__).read_text(encoding="utf-8")
+    codes = set(re.findall(r'APIError\(\s*\d+,\s*"(\w+)"', source))
+    codes |= set(re.findall(r'error="(\w+)"', source))
+    assert {"empty_index", "rate_limited", "unsupported_file"} <= codes
+    html = client.get("/").text
+    table = html[html.index("const ERRORS = {") : html.index("const STATUS_ERRORS")]
+    for code in codes:
+        assert f"  {code}: " in table, code
+    # the header no longer shows the index status line
+    assert 'id="health"' not in html
 
 
 def test_logs_are_json_with_stage_latency(client: TestClient) -> None:

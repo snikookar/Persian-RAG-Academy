@@ -213,7 +213,9 @@ see [SECURITY.md](SECURITY.md).
 ## License
 
 [MIT](LICENSE). All Persian sample data in `data/fixtures/` was written originally for this
-repository and is covered by the same license.
+repository and is covered by the same license. The web UI bundles the Vazirmatn font
+(© The Vazirmatn Project Authors), licensed under the
+[SIL Open Font License 1.1](src/parsrag/api/static/fonts/OFL.txt).
 
 ## Cite this project
 

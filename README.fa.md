@@ -176,7 +176,7 @@ docker compose up --build        # API + PostgreSQL/pgvector ← http://localhos
 
 ## مجوز
 
-[MIT](LICENSE). همهٔ داده‌های نمونهٔ فارسی در `data/fixtures/` برای همین مخزن نوشته شده‌اند و زیر همین مجوزند.
+[MIT](LICENSE). همهٔ داده‌های نمونهٔ فارسی در `data/fixtures/` برای همین مخزن نوشته شده‌اند و زیر همین مجوزند. رابط وب فونت وزیرمتن (© The Vazirmatn Project Authors) را همراه دارد که زیر [مجوز SIL Open Font License 1.1](src/parsrag/api/static/fonts/OFL.txt) است.
 
 ## ارجاع به این پروژه
 

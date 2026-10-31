@@ -5,43 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>پرسش از اسناد — parsrag</title>
 <style>
-  /* No external requests: Vazirmatn is used if installed, otherwise a system Persian font. */
+  /* Vazirmatn (SIL OFL 1.1) ships with the package and is served by the API from
+     static/fonts/, so the UI needs no external request; system Persian fonts are the fallback. */
+  @font-face { font-family: "Vazirmatn"; font-weight: 400; font-style: normal; font-display: swap;
+               src: url("static/fonts/Vazirmatn-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Vazirmatn"; font-weight: 500; font-style: normal; font-display: swap;
+               src: url("static/fonts/Vazirmatn-Medium.woff2") format("woff2"); }
+  @font-face { font-family: "Vazirmatn"; font-weight: 700; font-style: normal; font-display: swap;
+               src: url("static/fonts/Vazirmatn-Bold.woff2") format("woff2"); }
+  /* Blue palette; every text/background pair below meets WCAG AA (4.5:1). */
   :root {
-    --bg: #f7f6f2; --panel: #ffffff; --text: #1d1d1f; --muted: #6b6b70; --line: #e3e1da;
-    --accent: #0f6e5c; --accent-soft: #e2f1ec; --mark: #fff1b8; --error: #b3261e;
+    --bg: #f5f7fb; --panel: #ffffff; --text: #111827; --muted: #4b5563; --line: #d9dee8;
+    --primary: #1e3a8a; --primary-hover: #1e40af; --primary-active: #172f6e; --on-primary: #ffffff;
+    --accent: #1e40af; --accent-soft: #e6edfb; --focus: #2563eb;
+    --disabled-bg: #e2e6ee; --disabled-text: #4b5563;
+    --mark: #fff1b8; --error: #b3261e;
     --radius: 12px;
-    font-family: Vazirmatn, "Vazir", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    font-family: "Vazirmatn", "Vazir", Tahoma, "Noto Sans Arabic", "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #161618; --panel: #1f1f22; --text: #ececee; --muted: #9a9aa1; --line: #333338;
-            --accent: #5cc8b0; --accent-soft: #1d3a34; --mark: #5a4a12; --error: #ff8a80; }
+    :root { --bg: #0f1420; --panel: #171d2b; --text: #e8ecf4; --muted: #a9b2c3; --line: #2c3547;
+            --primary: #1d4ed8; --primary-hover: #2563eb; --primary-active: #1e40af; --on-primary: #ffffff;
+            --accent: #9cc0ff; --accent-soft: #1c2a4a; --focus: #7fb0ff;
+            --disabled-bg: #2a3242; --disabled-text: #b6bfce;
+            --mark: #5a4a12; --error: #ff8a80; }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.9; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.9; font-family: inherit; }
   main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
-  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
-  h1 { font-size: 1.4rem; margin: 0; }
+  header { display: flex; align-items: baseline; }
+  h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+  h2 { font-size: 1rem; font-weight: 700; margin: 0; }
   .muted { color: var(--muted); font-size: .9rem; }
+  kbd { font: inherit; }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
            padding: 16px; margin-top: 16px; }
   textarea { width: 100%; min-height: 72px; resize: vertical; font: inherit; color: inherit;
              background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
-  button { font: inherit; border: 0; border-radius: 8px; padding: 6px 18px; cursor: pointer;
-           background: var(--accent); color: #fff; }
-  button:disabled { opacity: .5; cursor: progress; }
+  textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; border-color: transparent; }
+  textarea::placeholder { color: var(--muted); }
+
+  /* Buttons: one primary style, one secondary (outline) style, shared focus/disabled states. */
+  button, .file-button { font: inherit; font-weight: 500; border: 1px solid transparent; border-radius: 8px;
+           padding: 6px 18px; cursor: pointer; background: var(--primary); color: var(--on-primary);
+           transition: background-color .15s ease, border-color .15s ease; }
+  button:hover, .file-button:hover { background: var(--primary-hover); }
+  button:active, .file-button:active { background: var(--primary-active); }
+  button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  button:disabled, button:disabled:hover { background: var(--disabled-bg); color: var(--disabled-text);
+           cursor: not-allowed; }
+  .secondary { background: transparent; color: var(--accent); border-color: var(--line);
+               padding: 0 12px; font-size: .85rem; }
+  .secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .secondary:active { background: var(--accent-soft); }
+
+  /* Persian file picker: the native input stays in the tab order (and opens with Enter/Space)
+     but is visually hidden; its label is the visible button. */
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+                     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .file-picker { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .file-button { display: inline-block; background: transparent; color: var(--accent);
+                 border-color: var(--accent); }
+  .file-button:hover { background: var(--accent-soft); }
+  .file-button:active { background: var(--accent-soft); }
+  #files:focus-visible + .file-button { outline: 3px solid var(--focus); outline-offset: 2px; }
+  #file-names { color: var(--muted); font-size: .9rem; }
+
   .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
   #answer { white-space: pre-wrap; font-size: 1.05rem; min-height: 1.9em; }
   .cite { display: inline-block; min-width: 1.8em; padding: 0 6px; margin: 0 2px; border-radius: 6px;
-          background: var(--accent-soft); color: var(--accent); font-size: .85em; cursor: pointer;
-          border: 1px solid transparent; }
-  .cite:hover, .cite:focus { border-color: var(--accent); outline: none; }
+          background: var(--accent-soft); color: var(--accent); font-size: .85em; font-weight: 500;
+          border: 1px solid transparent; line-height: 1.7; }
+  .cite:hover { background: var(--accent-soft); border-color: var(--accent); }
   .sources { list-style: none; padding: 0; margin: 12px 0 0; }
-  .sources li { border-top: 1px solid var(--line); padding: 8px 0; cursor: pointer; }
+  .sources li { border-top: 1px solid var(--line); padding: 8px; cursor: pointer; border-radius: 6px; }
+  .sources li:hover { background: var(--accent-soft); }
+  .sources li:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
   .sources li.active { background: var(--accent-soft); }
-  .passage { white-space: pre-wrap; border-inline-start: 3px solid var(--accent); padding-inline-start: 12px; }
+  .passage { white-space: pre-wrap; border-inline-start: 3px solid var(--primary); padding-inline-start: 12px; }
   mark { background: var(--mark); color: inherit; }
   .error { color: var(--error); }
-  .badge { font-size: .75rem; border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; }
   #doc { max-height: 420px; overflow: auto; white-space: pre-wrap; }
   .hidden { display: none; }
 </style>
@@ -50,16 +93,15 @@
 <main>
   <header>
     <h1>پرسش از اسناد</h1>
-    <span id="health" class="muted">در حال اتصال…</span>
   </header>
 
   <section class="panel" aria-labelledby="ask-title">
-    <h2 id="ask-title" class="muted" style="margin:0;font-size:1rem">پرسش</h2>
+    <h2 id="ask-title" class="muted">پرسش</h2>
     <textarea id="question" placeholder="مثلاً: شرایط مرجوعی کالا چیست؟" aria-label="پرسش"></textarea>
     <div class="row">
-      <button id="ask">بپرس</button>
-      <span class="muted">Ctrl+Enter</span>
-      <span id="status" class="muted"></span>
+      <button id="ask" type="button">بپرس</button>
+      <span class="muted">ارسال با <kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+      <span id="status" class="muted" role="status"></span>
     </div>
   </section>
 
@@ -74,19 +116,24 @@
   <section id="source" class="panel hidden">
     <div class="row" style="margin:0 0 8px">
       <strong id="source-title"></strong>
-      <button id="show-doc" class="badge" style="background:transparent;color:var(--accent)">نمایش کل سند</button>
+      <button id="show-doc" type="button" class="secondary">نمایش کل سند</button>
     </div>
     <div id="passage" class="passage"></div>
     <div id="doc" class="hidden"></div>
   </section>
 
-  <section class="panel">
-    <h2 class="muted" style="margin:0;font-size:1rem">افزودن سند</h2>
-    <p class="muted" style="margin:4px 0">TXT، Markdown، HTML، DOCX یا PDF</p>
+  <section class="panel" aria-labelledby="upload-title">
+    <h2 id="upload-title" class="muted">افزودن سند</h2>
+    <p class="muted" style="margin:4px 0">قالب‌های پشتیبانی‌شده: TXT، Markdown، HTML، DOCX یا PDF</p>
     <div class="row">
-      <input id="files" type="file" multiple accept=".txt,.md,.markdown,.html,.htm,.docx,.pdf">
-      <button id="upload">بارگذاری</button>
-      <span id="upload-status" class="muted"></span>
+      <span class="file-picker">
+        <input id="files" class="visually-hidden" type="file" multiple
+               accept=".txt,.md,.markdown,.html,.htm,.docx,.pdf" aria-describedby="file-names">
+        <label for="files" class="file-button">انتخاب فایل</label>
+        <span id="file-names">فایلی انتخاب نشده</span>
+      </span>
+      <button id="upload" type="button">بارگذاری</button>
+      <span id="upload-status" class="muted" role="status"></span>
     </div>
   </section>
 </main>
@@ -100,21 +147,41 @@ const REASONS = {
   model: "مدل گفت پاسخ در متن‌ها نیست",
   no_results: "متنی بازیابی نشد",
 };
+// The API returns stable error codes (its messages may be English or bilingual);
+// the UI shows only Persian text.
+const ERRORS = {
+  empty_index: "هنوز هیچ سندی نمایه نشده است. اول از بخش «افزودن سند» چند فایل بارگذاری کنید.",
+  duplicate_document: "این سند قبلاً اضافه شده است.",
+  unsupported_file: "نوع این فایل پشتیبانی نمی‌شود. فقط TXT، Markdown، HTML، DOCX یا PDF.",
+  file_too_large: "حجم فایل بیش از حد مجاز است.",
+  missing_extra: "خواندن این نوع فایل روی سرور فعال نیست (بستهٔ لازم نصب نشده است).",
+  not_found: "سند پیدا نشد.",
+  rate_limited: "تعداد درخواست‌ها زیاد است؛ چند لحظه بعد دوباره امتحان کنید.",
+  llm_timeout: "پاسخ مدل زبانی بیش از حد طول کشید؛ دوباره امتحان کنید.",
+  llm_error: "مدل زبانی با خطا روبه‌رو شد؛ دوباره امتحان کنید.",
+};
+const STATUS_ERRORS = {
+  413: ERRORS.file_too_large,
+  415: ERRORS.unsupported_file,
+  422: "درخواست نامعتبر است؛ پرسش را بررسی کنید.",
+  429: ERRORS.rate_limited,
+};
+const NETWORK_ERROR = "ارتباط با سرور برقرار نشد.";
 let citations = [];
 
-async function refreshHealth() {
-  try {
-    const h = await (await fetch("health")).json();
-    $("health").textContent =
-      `${faDigits(h.documents)} سند · ${faDigits(h.chunks)} قطعه · مدل: ${h.llm}`;
-  } catch {
-    $("health").textContent = "سرور در دسترس نیست";
-  }
+class UIError extends Error {}
+
+/** A Persian message for an API error body (``{"error": code, ...}``) and HTTP status. */
+function errorText(data, status) {
+  if (data && ERRORS[data.error]) return ERRORS[data.error];
+  if (status && STATUS_ERRORS[status]) return STATUS_ERRORS[status];
+  return status ? `خطای سرور (کد ${faDigits(status)}).` : "خطای ناشناخته‌ای رخ داد.";
 }
 
-function errorText(data, status) {
-  if (data && data.message) return data.message;
-  return `خطا (${status})`;
+/** Only Persian reaches the page: browser errors get a fixed Persian message. */
+function shownMessage(e) {
+  if (e instanceof UIError) return e.message;
+  return e instanceof TypeError ? NETWORK_ERROR : "خطای ناشناخته‌ای رخ داد.";
 }
 
 /** Answer text with every [n] turned into a clickable citation chip. */
@@ -128,9 +195,11 @@ function renderAnswer(text) {
     for (const raw of m[1].split(/[,،]/)) {
       const n = Number(raw.trim().replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
       const chip = document.createElement("button");
+      chip.type = "button";
       chip.className = "cite";
       chip.textContent = faDigits(n);
       chip.title = "نمایش منبع";
+      chip.setAttribute("aria-label", `نمایش منبع ${faDigits(n)}`);
       chip.onclick = () => showCitation(n);
       box.append(chip);
     }
@@ -143,9 +212,11 @@ function renderSources() {
   for (const c of citations) {
     const li = document.createElement("li");
     li.dataset.number = c.number;
+    li.tabIndex = 0;
     const where = [c.doc_id, c.section].filter(Boolean).join(" › ");
     li.textContent = `[${faDigits(c.number)}] ${where}${c.page ? ` (صفحهٔ ${faDigits(c.page)})` : ""}`;
     li.onclick = () => showCitation(c.number);
+    li.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showCitation(c.number); } };
     list.append(li);
   }
 }
@@ -164,9 +235,14 @@ function showCitation(n) {
 }
 
 async function showDocument(c) {
-  const r = await fetch(`documents/${encodeURIComponent(c.doc_id)}`);
-  if (!r.ok) return;
-  const doc = await r.json();
+  let doc;
+  try {
+    const r = await fetch(`documents/${encodeURIComponent(c.doc_id)}`);
+    if (!r.ok) return;
+    doc = await r.json();
+  } catch {
+    return;
+  }
   const box = $("doc");
   box.textContent = "";
   if (c.start != null && c.end != null) {
@@ -204,7 +280,7 @@ async function ask() {
     if (!r.ok) {
       let data = null;
       try { data = await r.json(); } catch {}
-      throw new Error(errorText(data, r.status));
+      throw new UIError(errorText(data, r.status));
     }
     const reader = r.body.getReader();
     const decoder = new TextDecoder();
@@ -221,14 +297,14 @@ async function ask() {
         const data = JSON.parse((block.match(/^data: (.*)$/m) || [, "null"])[1]);
         if (event === "sources") $("status").textContent = "در حال نوشتن پاسخ…";
         if (event === "token") { streamed += data.text; $("answer").textContent = streamed; }
-        if (event === "error") throw new Error(errorText(data));
+        if (event === "error") throw new UIError(errorText(data));
         if (event === "done") {
           citations = data.citations;
           renderAnswer(data.answer);
           renderSources();
           const reason = data.abstained ? (REASONS[data.abstain_reason] || "") : "";
           const ms = Math.round(data.timings.total_ms);
-          $("meta").textContent = [data.cached ? "از کش" : "", reason, `${faDigits(ms)} میلی‌ثانیه`]
+          $("meta").textContent = [data.cached ? "از حافظهٔ موقت" : "", reason, `${faDigits(ms)} میلی‌ثانیه`]
             .filter(Boolean).join(" · ");
         }
       }
@@ -236,34 +312,43 @@ async function ask() {
     $("status").textContent = "";
   } catch (e) {
     $("status").textContent = "";
-    $("answer").innerHTML = "";
+    $("answer").textContent = "";
     const p = document.createElement("span");
     p.className = "error";
-    p.textContent = e.message;
+    p.textContent = shownMessage(e);
     $("answer").append(p);
   } finally {
     $("ask").disabled = false;
   }
 }
 
+function showFileNames() {
+  const names = Array.from($("files").files, (f) => f.name);
+  $("file-names").textContent = names.length ? names.join("، ") : "فایلی انتخاب نشده";
+}
+
 async function upload() {
   const files = $("files").files;
-  if (!files.length) return;
+  $("upload-status").classList.remove("error");
+  if (!files.length) {
+    $("upload-status").textContent = "اول یک یا چند فایل انتخاب کنید.";
+    return;
+  }
   const form = new FormData();
   for (const f of files) form.append("files", f);
   $("upload").disabled = true;
   $("upload-status").textContent = "در حال نمایه‌سازی…";
-  $("upload-status").classList.remove("error");
   try {
     const r = await fetch("ingest/files", { method: "POST", body: form });
-    const data = await r.json();
-    if (!r.ok) throw new Error(errorText(data, r.status));
+    let data = null;
+    try { data = await r.json(); } catch {}
+    if (!r.ok) throw new UIError(errorText(data, r.status));
     $("upload-status").textContent =
       `${faDigits(data.added_documents.length)} سند و ${faDigits(data.added_chunks)} قطعه اضافه شد`;
     $("files").value = "";
-    refreshHealth();
+    showFileNames();
   } catch (e) {
-    $("upload-status").textContent = e.message;
+    $("upload-status").textContent = shownMessage(e);
     $("upload-status").classList.add("error");
   } finally {
     $("upload").disabled = false;
@@ -272,8 +357,8 @@ async function upload() {
 
 $("ask").onclick = ask;
 $("upload").onclick = upload;
+$("files").addEventListener("change", showFileNames);
 $("question").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.ctrlKey) ask(); });
-refreshHealth();
 </script>
 </body>
 </html>
