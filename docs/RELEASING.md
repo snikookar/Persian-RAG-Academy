@@ -60,8 +60,9 @@ A pending publisher does not reserve the name; publish the first release soon af
 
 1. Make sure `main` is green (CI, Docs) and the eval gate passes.
 2. Update the version in **two** places — `pyproject.toml` (`version`) and
-   `src/parsrag/__init__.py` (`__version__`) — and move the *Unreleased* entries in
-   `CHANGELOG.md` under a new heading with the version and date. Merge that PR.
+   `src/parsrag/__init__.py` (`__version__`) — and in `CHANGELOG.md` move the *Unreleased*
+   entries under a heading `## [X.Y.Z] - YYYY-MM-DD` (for 0.1.0, replace "not yet released"
+   with the date) and point its link at the tag. Merge that PR.
 3. Dry run on TestPyPI: **Actions → Release → Run workflow** on `main`. Then, in a clean
    virtual environment:
 
