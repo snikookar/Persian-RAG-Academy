@@ -12,5 +12,8 @@ Extra documentation, images and benchmark charts for the course live here.
   update with `python -m parsrag.eval gate --baseline docs/eval/baseline.json --update`.
 - `eval/report.md` — the full report of the course pipeline,
   `python -m parsrag.eval run --markdown docs/eval/report.md`.
+- `images/agent_graph.mmd` — LangGraph's own Mermaid drawing of the lesson 11 agent,
+  `python examples/agentic_rag.py --mermaid docs/images/agent_graph.mmd`.
+- `images/capstone_ui.png` — the web UI of lesson 13 (`parsrag serve`).
 
 (The full project overview arrives with the Day 5 README.)
