@@ -26,7 +26,8 @@ def evaluate(preprocess: Normalizer | None, chunk_size: int) -> tuple[float, flo
 
 
 def main() -> None:
-    print("Hit-rate on 24 answerable fixture questions (HashingEmbedding)\n")
+    answerable = sum(q.answerable for q in load_qa(FIXTURES / "qa.jsonl"))
+    print(f"Hit-rate on {answerable} answerable fixture questions (HashingEmbedding)\n")
     print(f"{'chunk size':>10} | {'raw @1':>7} {'norm @1':>8} | {'raw @3':>7} {'norm @3':>8}")
     print("-" * 52)
     for size in (200, 300, 400):

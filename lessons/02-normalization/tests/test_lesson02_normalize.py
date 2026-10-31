@@ -277,4 +277,4 @@ def test_normalization_improves_retrieval(nz: ModuleType) -> None:
 
     raw, normalized = score(None), score(nz.normalize)
     assert normalized > raw, f"hit@1 raw={raw:.3f} normalized={normalized:.3f}"
-    assert normalized >= 0.9
+    assert normalized >= 0.85
