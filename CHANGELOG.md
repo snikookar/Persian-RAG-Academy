@@ -6,7 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- The web UI bundles the Vazirmatn font (SIL OFL 1.1), served by the API at
+  `GET /static/fonts/{name}`, so it renders the same offline.
+
+### Changed
+
+- Web UI: blue theme with consistent hover/focus/disabled states (WCAG AA), title-only
+  header, Persian-only error messages (API error codes are translated in the page) and a
+  Persian, keyboard-accessible file picker.
+- Fixtures: the fictional library is renamed to «کتابخانهٔ مهرگان» (`mehregan-*`) and all
+  prices are set to plausible late-2026 levels; every benchmark number, chart and the eval
+  baseline are recomputed.
 
 ## [0.1.0] - not yet released
 
