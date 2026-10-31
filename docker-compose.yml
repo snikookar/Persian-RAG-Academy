@@ -1,0 +1,43 @@
+# parsrag API + PostgreSQL/pgvector (lesson 12).
+#   docker compose up --build        → http://localhost:8000 (UI) and /docs (OpenAPI)
+# The API indexes ./data/fixtures/corpus at startup and stores vectors in PostgreSQL.
+# For a real model: PARSRAG_LLM_PROVIDER=ollama PARSRAG_LLM_MODEL=qwen2.5:7b docker compose up
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: parsrag
+      POSTGRES_PASSWORD: parsrag
+      POSTGRES_DB: parsrag
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parsrag -d parsrag"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      PARSRAG_DATABASE_URL: postgresql://parsrag:parsrag@db:5432/parsrag
+      PARSRAG_DOCS: /data/docs
+      PARSRAG_LLM_PROVIDER: ${PARSRAG_LLM_PROVIDER:-fake}
+      PARSRAG_LLM_MODEL: ${PARSRAG_LLM_MODEL:-}
+      # Ollama on the host machine (Docker Desktop; on Linux add extra_hosts below).
+      PARSRAG_LLM_BASE_URL: ${PARSRAG_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      PARSRAG_RATE_LIMIT: ${PARSRAG_RATE_LIMIT:-60}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data/fixtures/corpus:/data/docs:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
