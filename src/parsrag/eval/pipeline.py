@@ -198,33 +198,15 @@ def build_course_pipeline(
     recursive chunks (400, heading context, normalised) → RRF(BM25 + light
     stemming, HashingEmbedding) → lexical rerank of 20 → GroundedGenerator(k=4)
     with an extractive, citing ``FakeLLM`` and a BM25 abstention threshold
-    calibrated on ``calibration`` (default: ``qa.jsonl``).
+    calibrated on ``calibration`` (default: ``qa.jsonl``). Since lesson 13 this
+    is :meth:`parsrag.PersianRAG.course_default`.
     """
-    from parsrag import FakeLLM, HashingEmbedding
-    from parsrag.eval.benchmark import FIXTURES, index_documents, load_fixture_benchmark
-    from parsrag.generate import calibrate_threshold, retriever_confidence
-    from parsrag.rerank import LexicalReranker, RerankingRetriever
-    from parsrag.retrieval import (
-        PERSIAN_STOPWORDS,
-        BM25Retriever,
-        DenseRetriever,
-        HybridRetriever,
-        PersianTokenizer,
-    )
+    from parsrag.rag import PersianRAG
 
-    docs, qa = load_fixture_benchmark(fixtures or FIXTURES)
-    calibration = qa if calibration is None else calibration
-    store = index_documents(docs, HashingEmbedding())
-    bm25 = BM25Retriever(store.chunks, tokenizer=PersianTokenizer(stem=True))
-    retriever = RerankingRetriever(
-        HybridRetriever([bm25, DenseRetriever(store)]), LexicalReranker(), fetch_k=20
-    )
-    confidence = retriever_confidence(bm25)
-    threshold, _ = calibrate_threshold(
-        [confidence(q.question, []) for q in calibration], [q.answerable for q in calibration]
-    )
-    llm = FakeLLM(mode="extractive", cite=True, ignore=PERSIAN_STOPWORDS)
-    return GroundedGenerator(retriever, llm, k=4, min_score=threshold, confidence=confidence)
+    rag = PersianRAG.course_default(fixtures, calibrate=calibration is None)
+    if calibration is not None:
+        rag.calibrate(calibration)
+    return rag.generator
 
 
 def save_report(

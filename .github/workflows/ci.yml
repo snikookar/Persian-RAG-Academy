@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   test:
-    name: test (Python ${{ matrix.python-version }}, loaders + faiss)
+    name: test (Python ${{ matrix.python-version }}, loaders + faiss + agent + api)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,10 +22,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install (loaders + faiss extras — no API keys, no model downloads)
+      - name: Install (loaders, faiss, agent, api extras — no API keys, no model downloads)
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[loaders,faiss]" pytest ruff
+          pip install -e ".[loaders,faiss,agent,api,openai]" pytest ruff
       - name: Ruff
         run: |
           ruff check .
@@ -50,7 +50,17 @@ jobs:
           python examples/reranking.py
           python examples/grounded_answers.py
           python examples/evaluation_report.py
+          python examples/agentic_rag.py
+          python examples/api_latency.py
           python -m parsrag.doctor
+      - name: Command line works offline
+        run: |
+          cd "$(mktemp -d)"
+          parsrag init
+          parsrag ingest "$GITHUB_WORKSPACE/data/fixtures/corpus" --calibrate "$GITHUB_WORKSPACE/data/fixtures/qa.jsonl"
+          parsrag ask "هزینهٔ پیک در تهران چقدر است؟"
+          parsrag eval "$GITHUB_WORKSPACE/data/fixtures/qa.jsonl" --baseline b.json --update-baseline
+          parsrag eval "$GITHUB_WORKSPACE/data/fixtures/qa.jsonl" --baseline b.json
       - name: Package builds
         run: |
           pip install build
@@ -75,3 +85,30 @@ jobs:
         run: python -m grader check-solutions
       - name: Eval gate works on the core install
         run: python -m parsrag.eval gate --baseline docs/eval/baseline.json
+
+  docker:
+    name: docker image (build + smoke test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Is Docker available?
+        id: docker
+        run: |
+          if docker info > /dev/null 2>&1; then echo "available=true" >> "$GITHUB_OUTPUT";
+          else echo "available=false" >> "$GITHUB_OUTPUT"; echo "::notice::Docker is not available — skipping the image checks"; fi
+      - name: Build the image
+        if: steps.docker.outputs.available == 'true'
+        run: docker build -t parsrag:ci .
+      - name: Smoke test (offline FakeLLM, fixtures mounted, non-root)
+        if: steps.docker.outputs.available == 'true'
+        run: |
+          docker run -d --name parsrag -p 8000:8000 -v "$PWD/data/fixtures/corpus:/data/docs:ro" parsrag:ci
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/health && break; sleep 1; done
+          curl -fsS -X POST http://127.0.0.1:8000/ask -H 'content-type: application/json' \
+            -d '{"question": "هزینهٔ پیک در تهران چقدر است؟"}' | tee answer.json
+          grep -q '45 هزار تومان' answer.json
+          test "$(docker exec parsrag id -u)" = "10001"
+          docker logs parsrag | head -5
+      - name: Compose file is valid
+        if: steps.docker.outputs.available == 'true'
+        run: docker compose config --quiet

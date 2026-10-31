@@ -4,7 +4,7 @@ The end-to-end runner lives in :mod:`parsrag.eval.pipeline` and the
 command line in ``python -m parsrag.eval`` (``run`` / ``gate``).
 """
 
-from parsrag.eval.dataset import QAItem, load_qa
+from parsrag.eval.dataset import QAItem, load_qa, validate_qa
 from parsrag.eval.gate import compare_metrics
 from parsrag.eval.generation import LLMJudge, citation_precision, faithfulness, token_f1
 from parsrag.eval.retrieval import (
@@ -35,4 +35,5 @@ __all__ = [
     "recall_at_k",
     "reciprocal_rank",
     "token_f1",
+    "validate_qa",
 ]

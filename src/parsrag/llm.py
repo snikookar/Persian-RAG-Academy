@@ -4,13 +4,19 @@
 * :class:`FakeLLM` — deterministic and offline; used in all tests, graders and examples.
 * :class:`OpenAICompatibleLLM` — talks to any OpenAI-compatible ``/chat/completions``
   endpoint (OpenAI, vLLM, OpenRouter, Ollama's ``/v1`` ...). Needs the ``openai`` extra.
+* :func:`stream_text` — token streaming (lesson 12): uses ``llm.stream`` when a
+  model has it, otherwise splits the full reply into words.
+* :class:`CountingLLM` — wraps any model and counts calls and time (lesson 11's
+  cost measurements).
 """
 
 from __future__ import annotations
 
+import json
 import os
 import re
-from collections.abc import Callable, Iterable, Mapping, Sequence
+import time
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel
@@ -125,6 +131,10 @@ class FakeLLM:
             return self._extract(last_user)
         return f"{self.prefix}{last_user}"
 
+    def stream(self, messages: Sequence[MessageLike]) -> Iterator[str]:
+        """The same reply as :meth:`generate`, yielded word by word (spaces kept)."""
+        yield from split_for_streaming(self.generate(messages))
+
     def _extract(self, prompt: str) -> str:
         context, question = prompt, prompt
         for marker in _QUESTION_MARKERS:
@@ -145,6 +155,59 @@ class FakeLLM:
         if self.cite and best_block is not None:
             return f"{best} [{best_block}]"
         return best
+
+
+# ------------------------------------------------------------------ streaming
+
+_PIECE = re.compile(r"\s*\S+\s*")
+
+
+def split_for_streaming(text: str) -> list[str]:
+    """Split ``text`` into word pieces whose concatenation is exactly ``text``."""
+    pieces = _PIECE.findall(text)
+    return pieces if "".join(pieces) == text else [text]
+
+
+def stream_text(llm: LLM, messages: Sequence[MessageLike]) -> Iterator[str]:
+    """Yield the reply in pieces: ``llm.stream`` if available, else word by word."""
+    stream = getattr(llm, "stream", None)
+    if callable(stream):
+        yield from stream(messages)
+    else:
+        yield from split_for_streaming(llm.generate(messages))
+
+
+class CountingLLM:
+    """Wrap a model and count its calls and the wall-clock time spent in it.
+
+    >>> llm = CountingLLM(FakeLLM(["سلام"]))
+    >>> llm.generate([{"role": "user", "content": "?"}]), llm.calls
+    ('سلام', 1)
+    """
+
+    def __init__(self, llm: LLM) -> None:
+        self.llm = llm
+        self.calls = 0
+        self.seconds = 0.0
+
+    def generate(self, messages: Sequence[MessageLike]) -> str:
+        start = time.perf_counter()
+        try:
+            return self.llm.generate(messages)
+        finally:
+            self.calls += 1
+            self.seconds += time.perf_counter() - start
+
+    def stream(self, messages: Sequence[MessageLike]) -> Iterator[str]:
+        start = time.perf_counter()
+        try:
+            yield from stream_text(self.llm, messages)
+        finally:
+            self.calls += 1
+            self.seconds += time.perf_counter() - start
+
+    def reset(self) -> None:
+        self.calls, self.seconds = 0, 0.0
 
 
 # ------------------------------------------------------------- OpenAI-compatible HTTP
@@ -203,14 +266,17 @@ class OpenAICompatibleLLM:
             payload["max_tokens"] = self.max_tokens
         return payload
 
-    def generate(self, messages: Sequence[MessageLike]) -> str:
+    def _headers(self) -> dict[str, str]:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
+        return headers
+
+    def generate(self, messages: Sequence[MessageLike]) -> str:
         response = self._get_client().post(
             f"{self.base_url}/chat/completions",
             json=self.build_payload(messages),
-            headers=headers,
+            headers=self._headers(),
             timeout=self.timeout,
         )
         response.raise_for_status()
@@ -219,3 +285,30 @@ class OpenAICompatibleLLM:
             return str(data["choices"][0]["message"]["content"])
         except (KeyError, IndexError, TypeError) as exc:
             raise RuntimeError(f"Unexpected response from {self.base_url}: {data!r}") from exc
+
+    def stream(self, messages: Sequence[MessageLike]) -> Iterator[str]:
+        """Stream the reply (``"stream": true``; Server-Sent Events ``data:`` lines)."""
+        payload = {**self.build_payload(messages), "stream": True}
+        with self._get_client().stream(
+            "POST",
+            f"{self.base_url}/chat/completions",
+            json=payload,
+            headers=self._headers(),
+            timeout=self.timeout,
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if not line.startswith("data:"):
+                    continue
+                data = line[len("data:") :].strip()
+                if data == "[DONE]":
+                    break
+                try:
+                    delta = json.loads(data)["choices"][0].get("delta", {})
+                except (ValueError, KeyError, IndexError, TypeError) as exc:
+                    raise RuntimeError(
+                        f"Unexpected stream chunk from {self.base_url}: {data!r}"
+                    ) from exc
+                content = delta.get("content")
+                if content:
+                    yield str(content)
