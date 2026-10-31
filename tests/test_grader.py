@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -17,7 +18,11 @@ def _grader(*args: str) -> subprocess.CompletedProcess[str]:
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
-        env={"PATH": "", "PYTHONPATH": f"{REPO_ROOT}:{REPO_ROOT / 'src'}", "NO_COLOR": "1"},
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join([str(REPO_ROOT), str(REPO_ROOT / "src")]),
+            "NO_COLOR": "1",
+        },
     )
 
 
