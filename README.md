@@ -36,7 +36,11 @@ python -m grader run 00
 | 04 | [Chunking Persian text](lessons/04-chunking/README.fa.md) | قطعه‌بندی متن فارسی |
 | 05 | [Embeddings & a retrieval benchmark](lessons/05-embeddings/README.fa.md) | برداری‌سازی و بنچمارک بازیابی |
 | 06 | [Vector stores](lessons/06-vector-stores/README.fa.md) | انباره‌های برداری (FAISS، pgvector) |
-| 07–13 | coming soon — see [ROADMAP.md](ROADMAP.md) | به‌زودی |
+| 07 | [Hybrid search](lessons/07-hybrid-search/README.fa.md) | جست‌وجوی ترکیبی (BM25 فارسی + برداری + RRF) |
+| 08 | [Reranking](lessons/08-reranking/README.fa.md) | بازرتبه‌بندی |
+| 09 | [Grounded generation](lessons/09-grounded-generation/README.fa.md) | تولید مستند با ارجاع و «نمی‌دانم» |
+| 10 | [Evaluation](lessons/10-evaluation/README.fa.md) | ارزیابی و دروازهٔ CI |
+| 11–13 | coming soon — see [ROADMAP.md](ROADMAP.md) | به‌زودی |
 
 ## License
 
