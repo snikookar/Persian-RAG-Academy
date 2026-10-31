@@ -324,27 +324,87 @@ Deviations from the Day 4 brief:
 - The UI does not load Vazirmatn from a CDN (no external requests); it uses it when installed.
 - `OpenAICompatibleLLM.stream` is tested with a mocked SSE stream only (no network).
 
-### Next session (Day 5) — documentation, publishing, polish
+### Day 5 — 2026-10-31: README, docs site, release preparation and polish
 
-- **README** (English, with a Persian section): what the course is, a diagram of the
-  `parsrag` pipeline and the lesson map, quick start (offline in 3 commands, then with
-  Ollama), library usage (`PersianRAG`, CLI, API, agent), and benchmark charts generated
-  from the committed numbers (chunking, hybrid, rerank, agent vs pipeline, cache latency) —
-  no new numbers without a script that produces them.
-- **Persian RTL documentation site on GitHub Pages**: render the lesson READMEs (Mermaid,
-  code, tables) with an RTL theme and a Persian font; a deploy workflow that builds on
-  `main` and publishes to Pages; links checked in CI.
-- **PyPI publishing workflow** with Trusted Publishing (OIDC, no tokens): build sdist/wheel,
-  `twine check`, publish to **TestPyPI first** on a manual trigger or tag pattern; document
-  the steps. Do **not** create a release or tag and do not publish.
-- **CONTRIBUTING.md** (offline-tests rule, fixtures must be original text, lesson structure,
-  grader hints, Conventional Commits), **CHANGELOG.md** (Keep a Changelog, Days 1–4), issue
-  templates (bug, lesson feedback, new lesson idea) and a PR template.
-- **Consistency pass over all 14 lessons**: same section order (intro + diagram, concepts,
-  measurement, real model, exercise, curious, reading, next lesson), check counts in each
-  README match the grader, Persian terminology consistent (one glossary), every number in a
-  README traceable to an example script, links between lessons, `starter` headers uniform.
-- Consider: a development split for the paraphrase set so rule-based or tuned components can
-  be fitted without leakage; growing both QA sets; a relative BM25 confidence for
-  abstention; Redis-backed cache/rate limit as an optional extra.
+Built:
+- `README.md` rewritten as the project's front page: pitch, badges (CI, Docs, PyPI, Python,
+  license), "why Persian breaks naive RAG" with three before/after examples from lessons 02, 03
+  and 11, Mermaid architecture and course-map diagrams, six result charts with an explicit
+  caveat (synthetic corpus, offline models; real models via `examples/benchmark_embeddings.py`),
+  quick start for learners / library users / service, lesson table with GitHub and docs-site
+  links, FAQ, contributing, license, citation. `README.fa.md`: a full Persian version.
+- `examples/make_readme_charts.py`: re-measures every chart number by calling the lesson
+  examples' own functions and writes `docs/images/readme_*.png` and
+  `docs/eval/readme_numbers.json`; CI fails if the committed numbers no longer reproduce.
+- Persian documentation site: MkDocs Material (`language: fa`, RTL, Vazirmatn, Mermaid, code
+  copy, search, light/dark). Lesson pages are generated from `lessons/*/README.fa.md` by
+  `scripts/mkdocs_hooks.py` (no copies; lesson / site / repository links rewritten, "edit"
+  points at the README). Pages for the library, CLI and HTTP API, results, and
+  `docs/glossary.fa.md`. `docs` extra; `.github/workflows/docs.yml` builds with
+  `mkdocs build --strict` on every PR and deploys from `main` with the official Pages actions.
+- Packaging: version `0.1.0` (not tagged), full PyPI metadata (keywords, classifiers, project
+  URLs), PyPI readme with absolute links via `hatch-fancy-pypi-readme`, explicit sdist file list
+  (`src/parsrag`, `README.md`, `LICENSE`, `pyproject.toml`, `CHANGELOG.md`);
+  `scripts/check_dist.py` + `twine check --strict` in CI.
+- `.github/workflows/release.yml`: published GitHub release → PyPI (environment `pypi`), manual
+  run → TestPyPI (environment `testpypi`), Trusted Publishing with `id-token: write`; tag/version
+  check, dist check and a wheel smoke test before upload. `docs/RELEASING.md` lists the one-time
+  setup on pypi.org, test.pypi.org and GitHub. Nothing was published, tagged or released.
+- Community files: `CONTRIBUTING.md`, `CHANGELOG.md` (Keep a Changelog, 0.1.0),
+  `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md`, `CITATION.cff`, issue forms
+  (bug, lesson feedback, new lesson proposal), PR template, social preview image
+  (`scripts/make_social_preview.py`, 1280×640, libraqm or the lesson 03 shaper).
+- `scripts/check_links.py`: offline check of relative links and heading anchors in every
+  tracked Markdown file (new CI job). `python -m grader check-starters` (in CI) and the starter
+  test now cover all 14 lessons (it stopped at lesson 10).
+- Consistency pass over the 14 lessons: same skeleton (title with English term, info box with
+  module / starter / grader command and check count / prerequisite, … exercise → curious →
+  further reading → next lesson with a link); new further-reading sections for lessons 00–04
+  and 06; lesson 02's check count fixed (74 → 89); terms aligned with the glossary (توهم،
+  آزمایش جداسازی، فهرست وارونه، انبارهٔ برداری، سرتیتر); every number table in lessons 02–12
+  re-checked against its example script and the baselines above (all match).
 
+Results: `ruff check .` clean · `pytest` 590 passed, 1 skipped (pgvector without DB) ·
+`python -m grader check-solutions` all pass · `python -m grader check-starters` all fail as they
+should · `python -m parsrag.eval gate` passes · `mkdocs build --strict` passes · sdist/wheel
+contain only the allowed files and pass `twine check --strict` · link checker clean ·
+fixtures and README numbers reproduce. Also verified: core-only install (541 passed, 26
+skipped), the site in headless Chromium (RTL layout, lesson pages, rewritten links), the social
+preview with and without libraqm.
+
+Findings worth remembering:
+- hatchling force-includes `.gitignore` in every sdist and has no switch to turn it off
+  (`ignore-vcs` does not affect it); `check_dist.py` allows exactly that file and `PKG-INFO`
+  besides the five listed files.
+- Relative links break on PyPI; rewriting them at build time keeps the README relative (and
+  link-checked) on GitHub and absolute on PyPI.
+- Generating the lesson pages from the READMEs in a hook keeps one source of truth; the link
+  checker and `mkdocs build --strict` together catch broken links on both GitHub and the site.
+
+Deviations from the Day 5 brief:
+- The web UI screenshot is the existing `docs/images/capstone_ui.png` (captured offline in
+  headless Chromium on Day 4); it was not regenerated.
+- The Python badge is static (3.10–3.12); the PyPI badge starts working after the first release.
+- The site loads Vazirmatn (Google Fonts) and Mermaid (CDN) in the reader's browser; the build
+  itself needs no network beyond installing the `docs` extra.
+- The library reference page is hand-written in Persian (signatures from the code), not
+  generated from docstrings, to keep the `docs` extra small.
+
+### Next session (Day 6) — optional ideas
+
+- **Colab notebook for benchmarking real embedding models** on the course questions
+  (`examples/benchmark_embeddings.py` with `st:` models, both question sets, passage-level
+  metrics), clearly marked as run by the learner; results never committed as course numbers
+  unless produced by a script in the repo.
+- **A lesson on RAG security / prompt injection inside documents**: original adversarial
+  fixture documents, a measurable attack-success rate with `FakeLLM`-style offline simulation,
+  defences (instruction isolation, citation validation, abstention, output checks) and their
+  limits.
+- **A Telegram bot example on top of `parsrag`** (`PersianRAG` + streaming answers with
+  citations), optional dependency, never run in CI.
+- **English summaries of each lesson** (one short page per lesson on the docs site or in
+  `lessons/*/README.en.md`), so non-Persian readers can follow the library design.
+- Still open from earlier days: a development split for `qa_paraphrase.jsonl` so rule-based or
+  tuned components can be fitted without leakage; growing both QA sets; a relative BM25
+  confidence for abstention; Redis-backed cache / rate limit as an optional extra; self-hosting
+  Vazirmatn and Mermaid on the docs site; the first real release (follow `docs/RELEASING.md`).

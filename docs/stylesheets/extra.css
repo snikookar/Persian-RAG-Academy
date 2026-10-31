@@ -1,0 +1,28 @@
+/* Persian text right-to-left, code and numbers left-to-right. */
+.md-typeset pre,
+.md-typeset pre > code,
+.md-typeset .highlight,
+.md-typeset .mermaid {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Inline code inside a Persian sentence keeps its own direction. */
+.md-typeset :not(pre) > code {
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+/* Mermaid diagrams contain Persian labels: let the browser shape them right-to-left. */
+.md-typeset .mermaid {
+  font-family: Vazirmatn, var(--md-text-font-family), sans-serif;
+}
+
+/* Wide tables scroll instead of squeezing Persian text. */
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+.md-typeset img {
+  border-radius: 4px;
+}

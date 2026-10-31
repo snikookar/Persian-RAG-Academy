@@ -1,0 +1,66 @@
+# Changelog
+
+All notable changes to `parsrag` and the Persian RAG Academy course are documented here.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
+adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+Nothing yet.
+
+## [0.1.0] - not yet released
+
+The first version: 14 lessons and the complete `parsrag` library. Prepared for PyPI; the
+release date is set when it is published (see `docs/RELEASING.md`).
+
+### Added — course
+
+- **00 Setup:** environment check (`parsrag.doctor`), the offline tools `FakeLLM` and
+  `HashingEmbedding`, the grader with bilingual hints.
+- **01 RAG in 50 lines:** load → chunk → embed → retrieve → generate (`parsrag.naive_rag`).
+- **02 Persian normalisation:** Arabic → Persian letters, digits, ZWNJ, diacritics, tatweel,
+  presentation forms, with a measured ablation (`parsrag.normalize`).
+- **03 Loading Persian documents:** TXT (cp1256), Markdown, HTML, DOCX and PDF loaders with
+  section and page offsets; PDF repair for presentation forms, visual order, lost ZWNJ and bidi
+  controls (`parsrag.loaders`).
+- **04 Chunking:** Persian sentence splitter, fixed-size, recursive and sentence-window
+  chunkers, heading context, token estimate (`parsrag.chunking`).
+- **05 Embeddings:** Recall@k / MRR / nDCG at document and passage level, TF-IDF baseline,
+  a benchmark script for real models (`parsrag.embeddings`, `parsrag.eval`).
+- **06 Vector stores:** one protocol with filters and save/load; in-memory, FAISS
+  (flat / HNSW / IVF) and pgvector (`parsrag.stores`).
+- **07 Hybrid search:** Persian BM25 with light stemming, dense retrieval, RRF and weighted
+  fusion; a second, paraphrased question set (`parsrag.retrieval`).
+- **08 Reranking:** offline lexical reranker, cross-encoder and LLM rerankers,
+  retrieve-many → rerank-few (`parsrag.rerank`).
+- **09 Grounded generation:** numbered context, citations mapped to document / section / page /
+  offsets, citation validation, calibrated «نمی‌دانم» (`parsrag.generate`).
+- **10 Evaluation:** token F1, citation precision, faithfulness (heuristic and LLM judge),
+  bootstrap confidence intervals, `python -m parsrag.eval gate` in CI (`parsrag.eval`).
+- **11 Agentic RAG:** analyse / rewrite → route → retrieve → rerank → grade → generate →
+  self-check → bounded retry; plain-Python runner and LangGraph `StateGraph` with human review
+  (`parsrag.agent`).
+- **12 Production API:** FastAPI with SSE streaming, a normalised-question cache, token-bucket
+  rate limiting, JSON logs with per-stage latency, Docker and Compose with pgvector
+  (`parsrag.api`).
+- **13 Capstone:** the `PersianRAG` facade, the `parsrag` command line, an RTL web UI, own
+  question sets with `validate_qa`, and a production-readiness checklist (`parsrag.rag`,
+  `parsrag.cli`).
+- Original Persian fixtures: 25 documents, 66 questions (`qa.jsonl`) and 51 paraphrases
+  (`qa_paraphrase.jsonl`), plus PDF / DOCX / HTML / cp1256 documents for the loaders.
+
+### Added — project
+
+- English `README.md` with result charts (`examples/make_readme_charts.py`) and a Persian
+  `README.fa.md`.
+- Persian documentation site (MkDocs Material, RTL) on GitHub Pages, with library, CLI and HTTP
+  API reference pages and a Persian/English glossary.
+- Packaging for PyPI: full metadata, an explicit file list for the sdist and wheel
+  (`scripts/check_dist.py`), and a Trusted Publishing release workflow (TestPyPI on demand,
+  PyPI on a GitHub release).
+- `python -m grader check-starters`; an offline Markdown link checker (`scripts/check_links.py`).
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CITATION.cff`, issue and PR
+  templates, and a social preview image (`scripts/make_social_preview.py`).
+
+[Unreleased]: https://github.com/snikookar/Persian-RAG-Academy/commits/main
+[0.1.0]: https://github.com/snikookar/Persian-RAG-Academy/commits/main

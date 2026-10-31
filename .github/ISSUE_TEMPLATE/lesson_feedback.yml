@@ -1,0 +1,59 @@
+name: Lesson feedback / نظر دربارهٔ یک درس
+description: Something in a lesson is unclear, wrong, inconsistent or could be explained better.
+labels: ["lesson"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        هر نظری کمک می‌کند: یک جملهٔ نامفهوم، یک عدد ناهماهنگ، یک اصطلاح متفاوت با
+        [واژه‌نامه](https://github.com/snikookar/Persian-RAG-Academy/blob/main/docs/glossary.fa.md)،
+        یک راهنمایی (hint) که کمکی نکرد، یا تمرینی که خیلی سخت یا خیلی ساده بود.
+  - type: dropdown
+    id: lesson
+    attributes:
+      label: Lesson / درس
+      options:
+        - "00 — Setup / آماده‌سازی محیط"
+        - "01 — RAG in 50 lines / RAG در ۵۰ خط"
+        - "02 — Persian normalisation / نرمال‌سازی فارسی"
+        - "03 — Loading documents / بارگذاری اسناد"
+        - "04 — Chunking / قطعه‌بندی"
+        - "05 — Embeddings / برداری‌سازی"
+        - "06 — Vector stores / انباره‌های برداری"
+        - "07 — Hybrid search / جست‌وجوی ترکیبی"
+        - "08 — Reranking / بازرتبه‌بندی"
+        - "09 — Grounded generation / تولید مستند"
+        - "10 — Evaluation / ارزیابی"
+        - "11 — Agentic RAG / RAG عامل‌محور"
+        - "12 — Production API / API تولیدی"
+        - "13 — Capstone / پروژهٔ پایانی"
+        - "Docs site, glossary or README / سایت، واژه‌نامه یا README"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of feedback / نوع نظر
+      options:
+        - Unclear explanation / توضیح نامفهوم
+        - Error in text, code or numbers / اشتباه در متن، کد یا عدد
+        - Broken link or diagram / پیوند یا نمودار خراب
+        - Exercise or grader hint / تمرین یا راهنمایی تصحیح‌کننده
+        - Terminology / اصطلاح
+        - Suggestion / پیشنهاد
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where? / کجا؟
+      description: Section heading, a quote, or a link to the line.
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback / نظر شما
+      description: What is wrong or confusing, and what would help?
+    validations:
+      required: true

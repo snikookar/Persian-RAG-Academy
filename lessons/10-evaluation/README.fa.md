@@ -1,5 +1,7 @@
 # درس ۱۰ — ارزیابی (Evaluation): از عدد تا دروازهٔ CI
 
+> **ماژول:** `parsrag.eval` (`generation`، `stats`، `gate`) · **کد شروع:** `starter/generation.py`، `starter/stats.py`، `starter/gate.py` · **تصحیح:** `python -m grader run 10` (۱۴ بررسی) · **پیش‌نیاز:** [درس ۰۹ — تولید مستند](../09-grounded-generation/README.fa.md)
+
 در درس‌های ۰۷ تا ۰۹ مدام گفتیم «این بهتر شد» و «آن کمک نکرد». حالا سه سؤال جدی‌تر:
 
 1. **چه چیزی** را بسنجیم؟ بازیابی خوب کافی نیست؛ پاسخ باید درست، مستند و صادق باشد.
@@ -227,4 +229,6 @@ python -m grader run 10          # ۱۴ بررسی
 - Efron & Tibshirani، *An Introduction to the Bootstrap* (1993) — مرجع کلاسیک بوت‌استرپ.
 - Dror et al.، *The Hitchhiker's Guide to Testing Statistical Significance in NLP* (ACL 2018).
 
-درس بعد: **RAG عامل‌محور (Agentic RAG) با LangGraph** — وقتی یک بار بازیابی کافی نیست.
+## درس بعد
+
+[درس ۱۱ — RAG عامل‌محور با LangGraph](../11-agentic-rag/README.fa.md): وقتی یک بار بازیابی کافی نیست.
