@@ -267,11 +267,14 @@ class PersianRAG:
     # --------------------------------------------------------------- pipeline
 
     @property
+    def hybrid(self) -> HybridRetriever:
+        """RRF over BM25 (light stemming) and dense retrieval — the first stage."""
+        return HybridRetriever([self.bm25, DenseRetriever(self.store, preprocess=self.preprocess)])
+
+    @property
     def retriever(self) -> RerankingRetriever | HybridRetriever:
-        """RRF(BM25, dense), reranked when a reranker is set."""
-        hybrid = HybridRetriever(
-            [self.bm25, DenseRetriever(self.store, preprocess=self.preprocess)]
-        )
+        """:attr:`hybrid`, reranked when a reranker is set."""
+        hybrid = self.hybrid
         if self.reranker is None:
             return hybrid
         return RerankingRetriever(hybrid, self.reranker, fetch_k=self.fetch_k)

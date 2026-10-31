@@ -172,7 +172,11 @@ def to_citation(number: int, result: SearchResult) -> Citation:
     )
 
 
-AbstainReason = Literal["no_results", "low_score", "model"]
+#: Why an answer is «نمی‌دانم»: lesson 09's generator uses the first three;
+#: the agent (lesson 11) adds the rest.
+AbstainReason = Literal[
+    "no_results", "low_score", "model", "clarify", "out_of_scope", "not_relevant", "unfaithful"
+]
 
 
 class GroundedAnswer(BaseModel):

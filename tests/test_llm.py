@@ -153,8 +153,10 @@ def test_package_import_does_not_pull_optional_deps() -> None:
     code = (
         "import sys, parsrag, parsrag.llm, parsrag.embeddings, parsrag.normalize,"
         " parsrag.retrieval,"
-        " parsrag.rerank, parsrag.generate, parsrag.eval;"
-        "bad = {'httpx', 'sentence_transformers', 'torch', 'faiss', 'openai'} & set(sys.modules);"
+        " parsrag.rerank, parsrag.generate, parsrag.eval, parsrag.rag, parsrag.config,"
+        " parsrag.agent;"
+        "bad = {'httpx', 'sentence_transformers', 'torch', 'faiss', 'openai', 'langgraph',"
+        " 'langchain_core', 'fastapi', 'uvicorn'} & set(sys.modules);"
         "print(sorted(bad)); raise SystemExit(1 if bad else 0)"
     )
     proc = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
