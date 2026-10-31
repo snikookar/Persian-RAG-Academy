@@ -1,0 +1,42 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	analyze(analyze)
+	retrieve(retrieve)
+	rerank(rerank)
+	grade(grade)
+	generate(generate)
+	check(check)
+	rewrite(rewrite)
+	finish(finish)
+	clarify(clarify)
+	refuse(refuse)
+	human_review(human_review)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> analyze;
+	analyze -.-> clarify;
+	analyze -.-> refuse;
+	analyze -.-> retrieve;
+	check -.-> finish;
+	check -.-> human_review;
+	check -.-> refuse;
+	check -.-> rewrite;
+	generate --> check;
+	grade -.-> generate;
+	grade -.-> refuse;
+	grade -.-> rewrite;
+	rerank --> grade;
+	retrieve --> rerank;
+	rewrite --> retrieve;
+	clarify --> __end__;
+	finish --> __end__;
+	human_review --> __end__;
+	refuse --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
+
