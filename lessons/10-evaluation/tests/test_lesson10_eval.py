@@ -55,7 +55,9 @@ def test_token_f1(gm: ModuleType, pred: str, ref: str, f1: float) -> None:
 
 
 def _item() -> QAItem:
-    return QAItem(id="q", question="؟", answer="200", doc_id="ship", evidence="پیک در تهران 200 هزار")
+    return QAItem(
+        id="q", question="؟", answer="200", doc_id="ship", evidence="پیک در تهران 200 هزار"
+    )
 
 
 @hint(

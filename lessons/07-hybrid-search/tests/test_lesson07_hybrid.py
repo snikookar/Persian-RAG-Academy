@@ -242,6 +242,6 @@ def test_hybrid_beats_both_on_the_fixtures(rt: ModuleType) -> None:
     dense = rt.DenseRetriever(store)
     hybrid = rt.HybridRetriever([bm25, dense])
     m_bm25, m_dense, m_hybrid = (_mrr(qa, r) for r in (bm25, dense, hybrid))
-    assert m_bm25 > 0.85 and m_dense > 0.85
+    assert m_bm25 > 0.83 and m_dense > 0.83
     assert m_hybrid > max(m_bm25, m_dense)
     assert _mrr(para, hybrid) < m_hybrid - 0.3

@@ -191,7 +191,9 @@ def test_validate_qa_finds_problems() -> None:
 
     docs = [SHOP]
     items = [
-        QAItem(id="1", question="هزینهٔ پیک؟", answer="۲۰۰", doc_id="shop", evidence="۲۰۰ هزار تومان"),
+        QAItem(
+            id="1", question="هزینهٔ پیک؟", answer="۲۰۰", doc_id="shop", evidence="۲۰۰ هزار تومان"
+        ),
         QAItem(id="2", question="؟", answer="-", doc_id="shop"),
         QAItem(id="2", question=" ", answer="-", doc_id=None, evidence="x"),
         QAItem(id="3", question="پیک؟", answer="-", doc_id="shop", evidence="۵۰ هزار تومان"),

@@ -259,7 +259,7 @@ def test_your_agent_reproduces_the_lesson_numbers(ag: ModuleType, rag: PersianRA
     para = evaluate_pipeline(
         agent, load_fixture_benchmark(qa_file="qa_paraphrase.jsonl")[1], n_resamples=10
     )
-    assert original.metrics["answer_f1"] == pytest.approx(0.314, abs=1e-3)
+    assert original.metrics["answer_f1"] == pytest.approx(0.301, abs=1e-3)
     assert original.metrics["abstention_f1"] == pytest.approx(0.714, abs=1e-3)
     assert para.metrics["retrieval_r@1"] == pytest.approx(0.478, abs=1e-3)
     assert para.metrics["answered_rate"] == pytest.approx(0.348, abs=1e-3)

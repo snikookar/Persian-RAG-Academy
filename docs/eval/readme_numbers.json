@@ -29,18 +29,18 @@
     }
   },
   "chunking": {
-    "fixed 200": 0.6702,
-    "recursive 200": 0.7317,
-    "recursive+headings 200": 0.8251,
-    "fixed 400": 0.7764,
+    "fixed 200": 0.6603,
+    "recursive 200": 0.7305,
+    "recursive+headings 200": 0.8197,
+    "fixed 400": 0.7879,
     "recursive 400": 0.8245,
-    "recursive+headings 400": 0.8576,
+    "recursive+headings 400": 0.8411,
     "fixed 800": 0.8814,
-    "recursive 800": 0.8937,
+    "recursive 800": 0.8942,
     "recursive+headings 800": 0.9482,
-    "sentence-window w=0": 0.6841,
-    "sentence-window w=1": 0.7581,
-    "sentence-window w=2": 0.8098
+    "sentence-window w=0": 0.6868,
+    "sentence-window w=1": 0.7631,
+    "sentence-window w=2": 0.8157
   },
   "hybrid": {
     "BM25": {
@@ -52,51 +52,51 @@
       "paraphrase": 0.4485
     },
     "dense (hashing)": {
-      "original": 0.8576,
-      "paraphrase": 0.3548
+      "original": 0.8411,
+      "paraphrase": 0.3495
     },
     "RRF (BM25 + dense)": {
-      "original": 0.9025,
-      "paraphrase": 0.475
+      "original": 0.9054,
+      "paraphrase": 0.467
     },
     "RRF (BM25+stem + dense)": {
-      "original": 0.9294,
-      "paraphrase": 0.4678
+      "original": 0.9251,
+      "paraphrase": 0.4533
     }
   },
   "rerank": {
     "no reranking": {
       "original": {
-        "R@1": 0.8814,
-        "MRR@10": 0.9294
+        "R@1": 0.8644,
+        "MRR@10": 0.9251
       },
       "paraphrase": {
-        "R@1": 0.3478,
-        "MRR@10": 0.4594
+        "R@1": 0.3261,
+        "MRR@10": 0.4466
       }
     },
     "lexical rerank of 20": {
       "original": {
-        "R@1": 0.8983,
-        "MRR@10": 0.9492
+        "R@1": 0.8814,
+        "MRR@10": 0.9407
       },
       "paraphrase": {
         "R@1": 0.3696,
-        "MRR@10": 0.488
+        "MRR@10": 0.487
       }
     }
   },
   "agent": {
     "original": {
       "lesson 09": {
-        "retrieval_r@1": 0.8983,
-        "answer_f1": 0.2888,
+        "retrieval_r@1": 0.8814,
+        "answer_f1": 0.2757,
         "answered_rate": 0.9661,
         "llm_calls": 0.8939
       },
       "agent": {
-        "retrieval_r@1": 0.8983,
-        "answer_f1": 0.3137,
+        "retrieval_r@1": 0.8814,
+        "answer_f1": 0.3006,
         "answered_rate": 0.9661,
         "llm_calls": 3.8939
       }

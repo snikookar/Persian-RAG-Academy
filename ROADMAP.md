@@ -26,7 +26,7 @@ Fixtures since Day 2: 25 documents, 66 questions (59 answerable, each with an ev
 
 | Pipeline | hit@1 | hit@3 |
 |---|---|---|
-| Lesson 01 naive (chunk 400) | 0.763 | 0.847 |
+| Lesson 01 naive (chunk 400) | 0.763 | 0.864 |
 | Lesson 01 naive (chunk 300) | 0.814 | 0.864 |
 | + Lesson 02 normalization (chunk 300) | 0.898 | 0.949 |
 
@@ -34,10 +34,10 @@ Passage-level (a retrieved chunk contains the evidence), normalised:
 
 | Pipeline | R@1 | R@3 | MRR |
 |---|---|---|---|
-| Lesson 04 fixed-size 200 chars | 0.525 | 0.780 | 0.670 |
-| Lesson 04 recursive 400 + heading context (course default) | 0.763 | 0.983 | 0.858 |
+| Lesson 04 fixed-size 200 chars | 0.525 | 0.763 | 0.660 |
+| Lesson 04 recursive 400 + heading context (course default) | 0.729 | 0.983 | 0.841 |
 | Lesson 05 same pipeline, TF-IDF (word) | 0.729 | 0.932 | 0.836 |
-| Lesson 05 same pipeline, TF-IDF (char 2–4) | 0.797 | 0.983 | 0.886 |
+| Lesson 05 same pipeline, TF-IDF (char 2–4) | 0.797 | 0.983 | 0.883 |
 
 Lesson 07–08, passage level, both question sets (`qa.jsonl`: 59 answerable;
 `qa_paraphrase.jsonl`: 46 answerable). Course chunking (recursive 400 + headings),
@@ -48,20 +48,20 @@ for ks 1, 3), lesson 08 rows MRR@10:
 |---|---|---|---|---|---|---|
 | BM25 | 0.780 | 0.949 | 0.872 | 0.370 | 0.435 | 0.434 |
 | BM25 + light stemming | 0.814 | 0.983 | 0.893 | 0.370 | 0.478 | 0.448 |
-| dense (hashing) | 0.763 | 0.983 | 0.858 | 0.196 | 0.457 | 0.355 |
-| RRF (BM25 + dense) | 0.831 | 0.983 | 0.903 | 0.391 | 0.478 | 0.475 |
-| RRF (BM25 + stem + dense) — course default | 0.881 | 0.966 | 0.929 | 0.348 | 0.522 | 0.468 |
-| + lexical rerank of 20 (MRR@10) | 0.898 | 1.000 | 0.949 | 0.370 | 0.522 | 0.488 |
+| dense (hashing) | 0.729 | 0.983 | 0.841 | 0.196 | 0.391 | 0.349 |
+| RRF (BM25 + dense) | 0.831 | 0.983 | 0.905 | 0.370 | 0.478 | 0.467 |
+| RRF (BM25 + stem + dense) — course default | 0.864 | 0.983 | 0.925 | 0.326 | 0.500 | 0.453 |
+| + lexical rerank of 20 (MRR@10) | 0.881 | 1.000 | 0.941 | 0.370 | 0.543 | 0.487 |
 
 End-to-end course pipeline (`python -m parsrag.eval run`; FakeLLM extractive;
 committed in `docs/eval/baseline.json`, gated in CI with tolerance 0.02):
 
 | Metric | original | paraphrase |
 |---|---|---|
-| retrieval R@1 [95% CI] | 0.898 [0.814, 0.966] | 0.370 [0.239, 0.500] |
-| retrieval MRR@10 | 0.949 [0.907, 0.983] | 0.488 [0.372, 0.600] |
-| answer token F1 (abstain = 0) | 0.289 [0.221, 0.360] | 0.016 [0.005, 0.031] |
-| citation precision | 0.860 | 0.800 |
+| retrieval R@1 [95% CI] | 0.881 [0.797, 0.949] | 0.370 [0.239, 0.500] |
+| retrieval MRR@10 | 0.941 [0.898, 0.975] | 0.487 [0.373, 0.600] |
+| answer token F1 (abstain = 0) | 0.276 [0.210, 0.344] | 0.016 [0.005, 0.031] |
+| citation precision | 0.842 | 0.800 |
 | faithfulness (heuristic) | 1.000 | 1.000 |
 | abstention F1 (BM25 threshold) | 0.714 | 0.178 |
 | answered rate (answerable questions) | 0.966 | 0.217 |
@@ -72,10 +72,10 @@ threshold; offline `OfflineAgentLLM`, grade threshold 0.4 chosen on `qa.jsonl` o
 
 | Metric | orig: lesson 09 | orig: agent | para: lesson 09 | para: agent | para: agent, no colloquial rules |
 |---|---|---|---|---|---|
-| retrieval R@1 | 0.898 | 0.898 | 0.370 | 0.478 | 0.370 |
-| retrieval MRR@10 | 0.949 | 0.949 | 0.488 | 0.556 | 0.472 |
-| answer F1 | 0.289 | 0.314 | 0.016 | 0.021 | 0.007 |
-| citation precision | 0.860 | 0.895 | 0.800 | 0.562 | 0.700 |
+| retrieval R@1 | 0.881 | 0.881 | 0.370 | 0.478 | 0.370 |
+| retrieval MRR@10 | 0.941 | 0.941 | 0.487 | 0.557 | 0.469 |
+| answer F1 | 0.276 | 0.301 | 0.016 | 0.021 | 0.007 |
+| citation precision | 0.842 | 0.877 | 0.800 | 0.562 | 0.700 |
 | abstention F1 | 0.714 | 0.714 | 0.178 | 0.205 | 0.178 |
 | answered rate | 0.966 | 0.966 | 0.217 | 0.348 | 0.217 |
 | LLM calls / question (mean / max) | 0.89 / 1 | 3.89 / 4 | 0.22 / 1 | 3.49 / 6 | 3.27 / 6 |

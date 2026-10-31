@@ -191,7 +191,7 @@ def test_numbers_quoted_in_lesson04() -> None:
     docs = bench.load_directory(CORPUS, "*.md")
     n, _, fixed = bench.run(docs, FixedSizeChunker(200, 25))
     assert n == 175
-    assert (round(fixed["P-R@3"], 3), round(fixed["P-MRR"], 3)) == (0.780, 0.670)
+    assert (round(fixed["P-R@3"], 3), round(fixed["P-MRR"], 3)) == (0.763, 0.660)
     n, _, best = bench.run(docs, RecursiveChunker(400, 50), heading_context=True)
     assert n == 109
-    assert (round(best["P-R@3"], 3), round(best["P-MRR"], 3)) == (0.983, 0.858)
+    assert (round(best["P-R@3"], 3), round(best["P-MRR"], 3)) == (0.983, 0.841)

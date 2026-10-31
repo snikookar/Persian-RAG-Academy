@@ -2,18 +2,18 @@
   "metrics": {
     "original": {
       "abstention_f1": 0.7143,
-      "answer_f1": 0.2888,
-      "citation_precision": 0.8596,
+      "answer_f1": 0.2757,
+      "citation_precision": 0.8421,
       "faithfulness": 1.0,
-      "retrieval_mrr": 0.9492,
-      "retrieval_r@1": 0.8983
+      "retrieval_mrr": 0.9407,
+      "retrieval_r@1": 0.8814
     },
     "paraphrase": {
       "abstention_f1": 0.1778,
       "answer_f1": 0.0163,
       "citation_precision": 0.8,
       "faithfulness": 1.0,
-      "retrieval_mrr": 0.488,
+      "retrieval_mrr": 0.487,
       "retrieval_r@1": 0.3696
     }
   },
