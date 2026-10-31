@@ -106,12 +106,17 @@ class RunResult:
         return sum(r["outcome"] == "passed" for r in self.results)
 
     @property
+    def skipped(self) -> int:
+        return sum(r["outcome"] == "skipped" for r in self.results)
+
+    @property
     def total(self) -> int:
         return len(self.results)
 
     @property
     def ok(self) -> bool:
-        return self.exit_code == 0 and self.total > 0 and self.passed == self.total
+        """Every check passed, except those skipped because an optional extra is missing."""
+        return self.exit_code == 0 and self.passed > 0 and self.passed + self.skipped == self.total
 
 
 def run_tests(lesson: Lesson, learner_path: Path | None) -> RunResult:
@@ -179,13 +184,18 @@ def print_report(lesson: Lesson, target: str, result: RunResult, verbose: bool =
 
     for _, items in _group(result.results):
         passed = sum(r["outcome"] == "passed" for r in items)
+        skipped = [r for r in items if r["outcome"] == "skipped"]
         first = items[0]
         count = f"({passed}/{len(items)})" if len(items) > 1 else ""
+        if skipped and passed + len(skipped) == len(items):
+            print(f" {dim('⏭')} {first['title']} {dim('— skipped / رد شد')}")
+            print(f"     {dim(skipped[0]['error'])}")
+            continue
         if passed == len(items):
             print(f" {green('✔')} {first['title']} {dim(count)}")
             continue
         print(f" {red('✘')} {first['title']} {dim(count)}")
-        failures = [r for r in items if r["outcome"] != "passed"]
+        failures = [r for r in items if r["outcome"] == "failed"]
         for r in failures if verbose else failures[:1]:
             if r["param"]:
                 print(f"     {dim('case:')}  {r['param']}")
@@ -205,6 +215,9 @@ def print_report(lesson: Lesson, target: str, result: RunResult, verbose: bool =
         return
     summary = f"Result: {result.passed}/{result.total} checks passed"
     summary_fa = f"نتیجه: {fa_num(result.passed)} از {fa_num(result.total)} بررسی موفق بود"
+    if result.skipped:
+        summary += f" ({result.skipped} skipped — install the extras to run them)"
+        summary_fa += f" ({fa_num(result.skipped)} بررسی رد شد؛ بسته‌های اختیاری را نصب کنید)"
     if result.ok:
         print(green(bold(f"🎉 {summary}")))
         print(green(f"{summary_fa} — آفرین! این درس را کامل کردید."))
@@ -240,14 +253,15 @@ def cmd_check_solutions(args: argparse.Namespace) -> int:
             continue
         result = run_tests(lesson, None)
         mark = green("✔") if result.ok else red("✘")
-        print(f"{mark} {lesson.number} {lesson.slug:<32} {result.passed}/{result.total}")
+        skipped = dim(f" ({result.skipped} skipped)") if result.skipped else ""
+        print(f"{mark} {lesson.number} {lesson.slug:<32} {result.passed}/{result.total}{skipped}")
         if not result.ok:
             all_ok = False
             if args.verbose or result.total == 0:
                 print(result.output[-4000:])
             else:
                 for r in result.results:
-                    if r["outcome"] != "passed":
+                    if r["outcome"] == "failed":
                         print(f"     {r['nodeid']}: {r['error']}")
     print()
     print(green("All reference solutions pass.") if all_ok else red("Some solutions fail."))
