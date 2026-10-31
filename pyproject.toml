@@ -67,7 +67,6 @@ markers = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-extend-exclude = ["lessons/*/starter"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
@@ -77,3 +76,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["parsrag", "grader"]
+
+[tool.ruff.lint.per-file-ignores]
+# Bilingual hint strings in lesson tests are easier to read on one line.
+"lessons/*/tests/*.py" = ["E501"]
