@@ -1,0 +1,59 @@
+name: New lesson proposal / پیشنهاد درس تازه
+description: Propose a new lesson (or a major change to an existing one) before writing it.
+labels: ["new lesson"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read the lesson structure in
+        [CONTRIBUTING.md](https://github.com/snikookar/Persian-RAG-Academy/blob/main/CONTRIBUTING.md#lesson-structure)
+        first. Every lesson builds one `parsrag` module, runs offline, and justifies its choices with a
+        measurement on the fixtures.
+  - type: input
+    id: title
+    attributes:
+      label: Working title / عنوان پیشنهادی
+      placeholder: "RAG security: prompt injection inside documents / امنیت RAG"
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: What will the learner be able to do? / یادگیرنده بعد از این درس چه کاری می‌تواند بکند؟
+    validations:
+      required: true
+  - type: textarea
+    id: module
+    attributes:
+      label: parsrag module and API / ماژول و API
+      description: Which module does the lesson build or extend? Sketch the public functions or classes.
+    validations:
+      required: true
+  - type: textarea
+    id: measurement
+    attributes:
+      label: Measurement / اندازه‌گیری
+      description: What will be measured on the fixtures, with which metric, and against which baseline?
+    validations:
+      required: true
+  - type: textarea
+    id: offline
+    attributes:
+      label: Offline and dependencies / آفلاین و وابستگی‌ها
+      description: How do tests stay offline (FakeLLM, HashingEmbedding)? Which optional extra, if any, is needed?
+    validations:
+      required: true
+  - type: input
+    id: position
+    attributes:
+      label: Where in the course? / کجای دوره؟
+      placeholder: "after lesson 10"
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Checklist
+      options:
+        - label: No paid API calls, network access or model downloads in tests or CI.
+          required: true
+        - label: Any new Persian sample text will be written originally for this repository.
+          required: true

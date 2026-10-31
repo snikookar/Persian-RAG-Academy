@@ -1,0 +1,56 @@
+name: Bug report / گزارش اشکال
+description: Something in parsrag, the grader or an example does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please search existing issues first. For security problems use
+        [private vulnerability reporting](https://github.com/snikookar/Persian-RAG-Academy/security/advisories/new) instead.
+        You can write in English or Persian. / می‌توانید فارسی یا انگلیسی بنویسید.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / چه اتفاقی افتاد؟
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce / چطور تکرار کنیم؟
+      description: The smallest code or commands that show the problem. Persian sample text is welcome.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output or traceback / خروجی یا خطا
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: parsrag version or commit
+      placeholder: "0.1.0 (python -c 'import parsrag; print(parsrag.__version__)') or a commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Python version and OS
+      placeholder: "Python 3.12, Ubuntu 24.04"
+    validations:
+      required: true
+  - type: checkboxes
+    id: extras
+    attributes:
+      label: Installed extras
+      options:
+        - label: core only
+        - label: loaders
+        - label: openai / ollama
+        - label: st (sentence-transformers)
+        - label: faiss / pgvector
+        - label: agent
+        - label: api
