@@ -16,6 +16,8 @@ class QAItem(BaseModel):
     ``evidence`` is a short span copied verbatim from that document which
     contains the answer. It allows *passage-level* evaluation: did the
     retrieved chunk actually contain the answer, not just the right document?
+    ``source_id`` links a paraphrased question (``qa_paraphrase.jsonl``) to the
+    original question it rewords.
     """
 
     id: str
@@ -23,6 +25,7 @@ class QAItem(BaseModel):
     answer: str
     doc_id: str | None = None
     evidence: str | None = None
+    source_id: str | None = None
 
     @property
     def answerable(self) -> bool:

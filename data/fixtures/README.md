@@ -16,12 +16,20 @@ like the rest of the repo). Nothing here is copied from news, books or websites.
   answerable question, `evidence` is a short span copied **verbatim** from the
   document that contains the answer — it enables passage-level evaluation
   ("did the retrieved chunk contain the answer?", lesson 04).
+- `qa_paraphrase.jsonl` — 51 questions (46 answerable, 5 unanswerable) that ask
+  about the **same facts** as questions in `qa.jsonl` but avoid the documents'
+  wording: synonyms («ضمانت» for «گارانتی», «پایتخت» for «تهران»), colloquial
+  Persian («پس بدم»، «چند روزه می‌رسه»), loanwords («ای‌بوک»، «کوپن»), and three
+  deliberate typos (`قصطی`, `تحفیف`, `چقد`). Each row has `source_id` (the original
+  question) and reuses that question's `doc_id`, `answer` and `evidence`, so both
+  sets are scored the same way. Lexical methods are expected to drop here;
+  that gap is what lessons 07–10 measure.
 - `documents/` — files in other formats for the loaders (lesson 03), see below.
 
 ## The text is messy on purpose
 
 The documents imitate real-world Persian text so that normalization
-(lesson 02) has a measurable effect. Questions are written in clean Persian.
+(lesson 02) has a measurable effect. Questions in `qa.jsonl` are written in clean Persian; `qa_paraphrase.jsonl` is deliberately informal.
 
 | Document | Deliberate problems |
 |---|---|
