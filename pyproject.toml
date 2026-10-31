@@ -1,0 +1,79 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "parsrag"
+version = "0.1.0.dev0"
+description = "Build, evaluate, and ship Retrieval-Augmented Generation for Persian text."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Samane Nikookar" }]
+keywords = ["rag", "persian", "farsi", "retrieval", "llm", "nlp", "course"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Natural Language :: Persian",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic>=2.5",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+# We speak the OpenAI-compatible HTTP protocol directly, so any compatible
+# server (OpenAI, vLLM, OpenRouter, Ollama's /v1 endpoint, ...) works.
+openai = ["httpx>=0.27"]
+ollama = ["ollama>=0.3"]
+st = ["sentence-transformers>=3.0"]
+faiss = ["faiss-cpu>=1.8"]
+pgvector = ["pgvector>=0.3", "psycopg[binary]>=3.1"]
+agent = ["langgraph>=0.2", "langchain-core>=0.3"]
+api = ["fastapi>=0.110", "uvicorn>=0.29"]
+loaders = ["pypdf>=4.0", "python-docx>=1.1", "beautifulsoup4>=4.12"]
+all = ["parsrag[openai,ollama,st,faiss,pgvector,agent,api,loaders]"]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/snikookar/Persian-RAG-Academy"
+Repository = "https://github.com/snikookar/Persian-RAG-Academy"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/parsrag"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/parsrag", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "lessons"]
+pythonpath = ["src", "."]
+addopts = "--import-mode=importlib -ra"
+markers = [
+    "hint(fa, en): a learner-facing hint shown by the grader when the test fails",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["lessons/*/starter"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+# RUF001-003: Persian text legitimately contains characters that look like
+# Latin ones (e.g. Arabic comma, ZWNJ); these warnings are noise here.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["parsrag", "grader"]
