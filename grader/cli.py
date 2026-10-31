@@ -268,6 +268,43 @@ def cmd_check_solutions(args: argparse.Namespace) -> int:
     return 0 if all_ok else 1
 
 
+def starter_problem(result: RunResult) -> str | None:
+    """Why a blank starter is broken, or None if it fails the way it should."""
+    if result.collection_errors:
+        return "the tests cannot be collected: " + "; ".join(result.collection_errors)
+    if result.total == 0:
+        return "no checks ran"
+    if all(r["when"] == "setup" for r in result.results):
+        return "the starter cannot be loaded: " + str(result.results[0]["error"])
+    if result.ok:
+        return "the blank starter already passes every check"
+    return None
+
+
+def cmd_check_starters(args: argparse.Namespace) -> int:
+    """Every blank starter must load and fail: otherwise the exercise teaches nothing."""
+    all_ok = True
+    for lesson in discover_lessons():
+        if not (lesson.tests.is_dir() and lesson.starter.is_dir()):
+            continue
+        result = run_tests(lesson, lesson.starter)
+        problem = starter_problem(result)
+        mark = green("✔") if problem is None else red("✘")
+        print(f"{mark} {lesson.number} {lesson.slug:<32} {result.passed}/{result.total} pass")
+        if problem is not None:
+            all_ok = False
+            print(f"     {problem}")
+            if args.verbose:
+                print(result.output[-4000:])
+    print()
+    print(
+        green("Every starter loads and fails until the TODOs are done.")
+        if all_ok
+        else red("Some starters are broken.")
+    )
+    return 0 if all_ok else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m grader", description="Persian RAG Academy grader / تصحیح‌کنندهٔ خودکار"
@@ -286,6 +323,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_check = sub.add_parser("check-solutions", help="run all lesson tests against parsrag")
     p_check.add_argument("-v", "--verbose", action="store_true")
     p_check.set_defaults(func=cmd_check_solutions)
+
+    p_starters = sub.add_parser("check-starters", help="check that every blank starter fails")
+    p_starters.add_argument("-v", "--verbose", action="store_true")
+    p_starters.set_defaults(func=cmd_check_starters)
     return parser
 
 

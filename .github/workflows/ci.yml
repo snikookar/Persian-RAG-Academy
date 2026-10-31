@@ -34,6 +34,8 @@ jobs:
         run: pytest -ra
       - name: Reference solutions pass every lesson
         run: python -m grader check-solutions
+      - name: Every blank starter loads and fails
+        run: python -m grader check-starters
       - name: Eval gate — fail if quality drops below the committed baseline
         run: python -m parsrag.eval gate --baseline docs/eval/baseline.json
       - name: Committed fixtures are reproducible
