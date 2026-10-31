@@ -151,9 +151,32 @@ def test_package_import_does_not_pull_optional_deps() -> None:
     import subprocess
 
     code = (
-        "import sys, parsrag, parsrag.llm, parsrag.embeddings, parsrag.normalize;"
+        "import sys, parsrag, parsrag.llm, parsrag.embeddings, parsrag.normalize,"
+        " parsrag.retrieval,"
+        " parsrag.rerank, parsrag.generate, parsrag.eval;"
         "bad = {'httpx', 'sentence_transformers', 'torch', 'faiss', 'openai'} & set(sys.modules);"
         "print(sorted(bad)); raise SystemExit(1 if bad else 0)"
     )
     proc = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
     assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+def test_fake_llm_extractive_cites_numbered_blocks() -> None:
+    prompt = (
+        "متن‌ها:\n[1] shop › ارسال\nهزینهٔ پیک ۴۵ هزار تومان است.\n\n"
+        "[2] library\nکتابخانه تا ۸ شب باز است.\n\nپرسش: کتابخانه تا کی باز است؟"
+    )
+    cited = FakeLLM(mode="extractive", cite=True)
+    assert cited.generate([{"role": "user", "content": prompt}]) == "کتابخانه تا ۸ شب باز است. [2]"
+    plain = FakeLLM(mode="extractive")
+    assert plain.generate([{"role": "user", "content": prompt}]) == "کتابخانه تا ۸ شب باز است."
+
+
+def test_fake_llm_extractive_min_overlap_and_ignore() -> None:
+    prompt = "[1] d\nکتابخانه تا ۸ شب باز است.\n\nپرسش: پارکینگ کتابخانه کجا است؟"
+    msgs = [{"role": "user", "content": prompt}]
+    assert FakeLLM(mode="extractive").generate(msgs) == "کتابخانه تا ۸ شب باز است."
+    strict = FakeLLM(mode="extractive", min_overlap=2)
+    assert strict.generate(msgs) == "کتابخانه تا ۸ شب باز است."  # «کتابخانه» + «است»
+    no_stop = FakeLLM(mode="extractive", min_overlap=2, ignore={"است"})
+    assert no_stop.generate(msgs) == "نمی‌دانم."

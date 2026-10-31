@@ -32,12 +32,17 @@ SAME: Literal["same"] = "same"
 FIXTURES = Path(__file__).resolve().parents[3] / "data" / "fixtures"
 
 
-def load_fixture_benchmark(fixtures: str | Path = FIXTURES) -> tuple[list[Document], list[QAItem]]:
-    """The course corpus (Markdown, headings kept) and its QA set."""
+def load_fixture_benchmark(
+    fixtures: str | Path = FIXTURES, qa_file: str = "qa.jsonl"
+) -> tuple[list[Document], list[QAItem]]:
+    """The course corpus (Markdown, headings kept) and one of its QA sets.
+
+    ``qa_file="qa_paraphrase.jsonl"`` loads the paraphrased questions (lesson 07+).
+    """
     from parsrag.loaders import load_directory
 
     root = Path(fixtures)
-    return load_directory(root / "corpus", "*.md"), load_qa(root / "qa.jsonl")
+    return load_directory(root / "corpus", "*.md"), load_qa(root / qa_file)
 
 
 def index_documents(

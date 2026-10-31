@@ -34,6 +34,8 @@ jobs:
         run: pytest -ra
       - name: Reference solutions pass every lesson
         run: python -m grader check-solutions
+      - name: Eval gate — fail if quality drops below the committed baseline
+        run: python -m parsrag.eval gate --baseline docs/eval/baseline.json
       - name: Committed fixtures are reproducible
         run: python data/fixtures/build_fixtures.py --check
       - name: Examples run offline
@@ -44,6 +46,10 @@ jobs:
           python examples/chunking_benchmark.py
           python examples/benchmark_embeddings.py
           python examples/vector_store_latency.py --sizes 2000 --queries 50
+          python examples/hybrid_search.py
+          python examples/reranking.py
+          python examples/grounded_answers.py
+          python examples/evaluation_report.py
           python -m parsrag.doctor
       - name: Package builds
         run: |
@@ -67,3 +73,5 @@ jobs:
         run: pytest -ra
       - name: Reference solutions pass (extras checks skipped)
         run: python -m grader check-solutions
+      - name: Eval gate works on the core install
+        run: python -m parsrag.eval gate --baseline docs/eval/baseline.json
