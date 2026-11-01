@@ -110,6 +110,8 @@ nav:
       - "۱۲ · API تولیدی": lessons/12-production-api.md
       - "۱۳ · پروژهٔ پایانی": lessons/13-capstone.md
       - "۱۴ · امنیت RAG": lessons/14-rag-security.md
+  - راهنماها:
+      - PDFهای خودتان با Ollama: guides/own-pdfs-ollama.md
   - مرجع:
       - کتابخانهٔ parsrag: reference/library.md
       - خط فرمان (CLI): reference/cli.md
