@@ -100,6 +100,7 @@ class AskResponse(BaseModel):
     abstained: bool
     abstain_reason: str | None = None
     citations: list[Citation] = Field(default_factory=list)
+    security: list[str] = Field(default_factory=list)
     cached: bool = False
     timings: StageTimings = Field(default_factory=StageTimings)
 
@@ -256,8 +257,22 @@ class RAGService:
             ],
         )
         early, top = gen.precheck(question, results)
+        guarded = gen.guard is not None and gen.guard.check_output
         if early is not None:
             answer = early
+        elif guarded:
+            # Lesson 14: check the whole reply before sending any of it.
+            try:
+                answer = await asyncio.wait_for(
+                    asyncio.to_thread(gen.answer_from, question, results),
+                    self.settings.llm_timeout,
+                )
+            except Exception as exc:
+                err = self._llm_error(exc)
+                yield sse("error", {"error": err.error, "message": err.message})
+                return
+            for piece in split_for_streaming(answer.answer):
+                yield sse("token", {"text": piece})
         else:
             pieces: list[str] = []
             try:
@@ -313,11 +328,16 @@ def build_rag(settings: Settings) -> PersianRAG:
     if settings.llm_base_url:
         cfg.llm.base_url = settings.llm_base_url
     cfg.llm.timeout = settings.llm_timeout
+    if settings.security is not None:
+        cfg.security.enabled = settings.security
     if settings.index and Path(settings.index, "rag.json").is_file():
         from parsrag.config import make_llm
 
         return PersianRAG.load(
-            settings.index, embedding=make_embedding(cfg.embedding), llm=make_llm(cfg.llm)
+            settings.index,
+            embedding=make_embedding(cfg.embedding),
+            llm=make_llm(cfg.llm),
+            guard=cfg.security.make_guard(),
         )
     kwargs: dict[str, Any] = {}
     if settings.database_url:

@@ -32,6 +32,10 @@ A configuration is a plain mapping, usually read from a TOML file::
     # api_key_env = "OPENAI_API_KEY"
     # timeout = 60
 
+    [security]                   # lesson 14: prompt injection hidden in documents
+    enabled = false
+    # action = "drop"            # "drop" | "flag" suspicious chunks
+
 Real providers are created lazily, so reading a config never needs an extra
 or a network connection. ``tomllib`` is in the standard library from Python
 3.11; on 3.10 install ``tomli`` or use a ``.json`` file with the same keys.
@@ -93,6 +97,31 @@ class ProviderConfig(_Section):
     document_prefix: str = ""
 
 
+class SecurityConfig(_Section):
+    """Lesson 14's prompt-injection guard (off by default)."""
+
+    enabled: bool = False
+    action: str = "drop"  # "drop" | "flag"
+    sanitize: bool = True
+    delimiters: str = "random"  # "random" | "fixed" | "none"
+    reminder: bool = True
+    check_output: bool = True
+
+    def make_guard(self) -> Any:
+        """An :class:`~parsrag.security.InjectionGuard`, or ``None`` when disabled."""
+        if not self.enabled:
+            return None
+        from parsrag.security import InjectionGuard
+
+        return InjectionGuard(
+            action=self.action,  # type: ignore[arg-type]
+            sanitize=self.sanitize,
+            delimiters=self.delimiters,  # type: ignore[arg-type]
+            reminder=self.reminder,
+            check_output=self.check_output,
+        )
+
+
 class RAGConfig(_Section):
     """The whole configuration; every section has course defaults."""
 
@@ -102,6 +131,7 @@ class RAGConfig(_Section):
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
     embedding: ProviderConfig = Field(default_factory=lambda: ProviderConfig(provider="hashing"))
     llm: ProviderConfig = Field(default_factory=lambda: ProviderConfig(provider="fake"))
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
     #: Directory that relative paths are resolved against (the config file's folder).
     base_dir: str = "."
 
@@ -201,6 +231,7 @@ __all__ = [
     "ProviderConfig",
     "RAGConfig",
     "RetrievalConfig",
+    "SecurityConfig",
     "load_config",
     "make_embedding",
     "make_llm",
