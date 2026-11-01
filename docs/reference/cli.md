@@ -50,6 +50,10 @@ provider = "fake"              # "fake" (آفلاین، استخراجی) | "oll
 # base_url = "http://localhost:11434/v1"
 # api_key_env = "OPENAI_API_KEY"
 timeout = 60
+
+[security]
+enabled = false                # محافظ تزریق پرامپت (درس ۱۴)
+# action = "drop"              # "drop" | "flag" برای قطعه‌های مشکوک
 ```
 
 کلید API هیچ‌وقت در فایل نوشته نمی‌شود؛ فقط *نام* متغیر محیطی‌اش (`api_key_env`).

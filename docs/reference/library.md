@@ -39,7 +39,7 @@ rag.passage(answer.citations[0])                # متن دقیق منبع در 
 PersianRAG(
     documents=(), *, embedding=None, llm=None, chunker=None, store=None,
     reranker=<lexical>, k=4, fetch_k=20, stem=True, heading_context=True,
-    normalize_text=True, min_score=None, config=None,
+    normalize_text=True, min_score=None, config=None, guard=None,
 )
 ```
 
@@ -57,11 +57,13 @@ PersianRAG(
 | `evaluate(qa)` | گزارش کامل درس ۱۰ |
 | `save(dir)`، `PersianRAG.load(dir)` | ذخیره و بارگذاری نمایه |
 
+`guard=True` (یا یک `InjectionGuard`) محافظ تزریق پرامپت [درس ۱۴](../lessons/14-rag-security.md) را روشن می‌کند؛ پیش‌فرض خاموش است.
+
 ## ماژول‌ها، به ترتیب درس‌ها
 
 | ماژول | مهم‌ترین نام‌ها | درس |
 |---|---|---|
-| `parsrag.llm` | `LLM`، `FakeLLM` (حالت‌های echo و extractive)، `OpenAICompatibleLLM`، `CountingLLM` | ۰۰ |
+| `parsrag.llm` | `LLM`، `FakeLLM` (حالت‌های echo و extractive؛ `obey` برای درس ۱۴)، `OpenAICompatibleLLM`، `CountingLLM` | ۰۰ |
 | `parsrag.embeddings` | `Embedding`، `HashingEmbedding`، `TfidfEmbedding`، `SentenceTransformerEmbedding`، `OpenAICompatibleEmbedding` | ۰۰، ۰۵ |
 | `parsrag.naive_rag` | `NaiveRAG`، `chunk_text`، `build_prompt` | ۰۱ |
 | `parsrag.normalize` | `normalize`، `Normalizer`، `NormalizerConfig`، `fix_presentation_forms` | ۰۲ |
@@ -75,6 +77,7 @@ PersianRAG(
 | `parsrag.agent` | `AgenticRAG`، `OfflineAgentLLM`، `build_graph`، `draw_mermaid` | ۱۱ |
 | `parsrag.api` | `create_app`، `Settings`، `AnswerCache`، `RateLimiter` | ۱۲ |
 | `parsrag.rag`، `parsrag.config`، `parsrag.cli` | `PersianRAG`، `RAGConfig`، فرمان `parsrag` | ۱۳ |
+| `parsrag.security` | `InjectionGuard`، `GuardedRetriever`، `detect_injection`، `sanitize_text`، `sandbox_context`، `load_attacks` | ۱۴ |
 
 همهٔ نام‌ها docstring انگلیسی دارند؛ در پایتون با `help(parsrag.retrieval.BM25Retriever)` ببینید.
 
