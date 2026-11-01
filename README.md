@@ -221,6 +221,9 @@ Contributions are welcome — bug reports, lesson feedback, fixes, new lessons. 
 grader and the eval gate) and the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues:
 see [SECURITY.md](SECURITY.md).
 
+Looking for a first task? See
+[good first contributions](CONTRIBUTING.md#help-wanted--good-first-contributions).
+
 ## License
 
 [MIT](LICENSE). All Persian sample data in `data/fixtures/` was written originally for this

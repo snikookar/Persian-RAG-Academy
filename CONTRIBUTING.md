@@ -179,6 +179,54 @@ and the QA sets. When you add or change data:
 - Changing fixtures changes numbers: re-run the examples, update lesson tables and the baseline,
   and say so in the PR.
 
+## Help wanted / good first contributions
+
+New here? Each task below is small, self-contained and reviewable in one sitting. Comment on (or
+open) an issue saying which one you are taking, so two people do not do the same work. Every PR
+still follows the [ground rules](#ground-rules) and runs [Before you push](#before-you-push).
+
+1. **Add a real-model row to lesson 05.** Run
+   [`notebooks/benchmark_real_embeddings.ipynb`](notebooks/benchmark_real_embeddings.ipynb) on
+   Colab (or `python examples/benchmark_embeddings.py` locally) with one multilingual model and
+   paste the printed row into the *real models* table of
+   [`lessons/05-embeddings/README.fa.md`](lessons/05-embeddings/README.fa.md), replacing the
+   placeholder row. Include hardware and the commit you ran on. *Verify:* the row is copied from
+   the notebook output unchanged; `python scripts/check_links.py` and `mkdocs build --strict` pass.
+2. **Write new original QA pairs.** Add 3–5 questions about existing documents to
+   [`data/fixtures/qa.jsonl`](data/fixtures/qa.jsonl), with `evidence` copied verbatim (see
+   [Writing fixtures](#writing-fixtures)). *Verify:* `python data/fixtures/build_fixtures.py
+   --check`, `pytest tests/test_fixtures_paraphrase.py tests/test_eval_retrieval.py`; if the eval
+   gate moves, update the baseline and say so in the PR.
+3. **Add paraphrases for existing questions.** Rewrite a few questions in
+   [`data/fixtures/qa_paraphrase.jsonl`](data/fixtures/qa_paraphrase.jsonl) with different words
+   (same `source_id`). *Verify:* `pytest tests/test_fixtures_paraphrase.py` and the eval gate.
+4. **Add a challenge to a lesson.** Add one open question or experiment to the
+   `### برای کنجکاوها` section of any `lessons/NN-slug/README.fa.md`, with the command to try it.
+   *Verify:* the command actually runs offline; `python scripts/check_links.py`.
+5. **Improve a lesson diagram.** Make one Mermaid diagram clearer (labels in Persian, fewer
+   crossing arrows), e.g. in
+   [`lessons/07-hybrid-search/README.fa.md`](lessons/07-hybrid-search/README.fa.md).
+   *Verify:* it renders on GitHub's preview and in `mkdocs serve`; `mkdocs build --strict` passes.
+6. **Add a loader for a new format** (e.g. `.csv` or `.json` as text records). Write it in
+   [`src/parsrag/loaders/`](src/parsrag/loaders/), register the suffix in
+   [`src/parsrag/loaders/__init__.py`](src/parsrag/loaders/__init__.py), keep any new dependency
+   in an extra, and add tests to [`tests/test_loaders.py`](tests/test_loaders.py) with a tiny
+   original Persian sample. *Verify:* `pytest tests/test_loaders.py`, `ruff check .`, `mypy`.
+7. **Translate or refresh one English lesson summary.** Pick one file in [`docs/en/`](docs/en/)
+   and bring it in line with its Persian lesson (new sections, renamed functions, current
+   numbers). *Verify:* numbers match the lesson; `mkdocs build --strict` passes.
+8. **Add a missing glossary term.** Find a technical term used in a lesson but missing from
+   [`docs/glossary.fa.md`](docs/glossary.fa.md) and add it with its English equivalent.
+   *Verify:* `python scripts/check_links.py` and `mkdocs build --strict`.
+9. **Add a prompt-injection test case.** Write one new original attack document for lesson 14 in
+   [`data/fixtures/attacks/`](data/fixtures/attacks/) and its row in `attacks.jsonl`, following
+   [`data/fixtures/attacks/README.md`](data/fixtures/attacks/README.md). *Verify:*
+   `pytest tests/test_security.py` and `python examples/injection_attacks.py`; update any lesson
+   numbers it changes.
+10. **Sharpen a grader hint.** Find a test in `lessons/*/tests/` whose `fa`/`en` hint is vague and
+    make it more helpful without giving the answer away. *Verify:*
+    `python -m grader check-solutions` and `python -m grader check-starters`.
+
 ## Reporting bugs and giving lesson feedback
 
 Use the [issue templates](https://github.com/snikookar/Persian-RAG-Academy/issues/new/choose):
