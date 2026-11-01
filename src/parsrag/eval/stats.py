@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass(frozen=True)
@@ -26,7 +28,11 @@ class Interval:
 
 
 def bootstrap_ci(
-    values: Sequence[float], *, n_resamples: int = 2000, alpha: float = 0.05, seed: int = 0
+    values: Sequence[float] | npt.NDArray[np.floating[Any]],
+    *,
+    n_resamples: int = 2000,
+    alpha: float = 0.05,
+    seed: int = 0,
 ) -> Interval:
     """Percentile bootstrap: resample ``values`` with replacement, take the mean each time.
 

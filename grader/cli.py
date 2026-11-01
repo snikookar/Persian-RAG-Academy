@@ -1,8 +1,9 @@
-"""Command-line interface: ``python -m grader {list,run,check-solutions}``."""
+"""Command-line interface: ``python -m grader {list,run,progress,check-solutions,...}``."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -305,6 +306,122 @@ def cmd_check_starters(args: argparse.Namespace) -> int:
     return 0 if all_ok else 1
 
 
+# ----------------------------------------------------------------------- progress
+
+#: SHA-256 fingerprints of the blank starters, so ``progress`` can tell "not started"
+#: from "started and failing" without git. Refresh with ``fingerprint-starters``.
+STARTERS_MANIFEST = Path(__file__).with_name("starters.json")
+
+
+def fingerprint(folder: Path) -> str:
+    """Hash of every ``.py`` file in ``folder`` (names + contents, line endings normalised)."""
+    digest = hashlib.sha256()
+    for path in sorted(folder.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
+        digest.update(path.relative_to(folder).as_posix().encode("utf-8") + b"\0")
+        digest.update(path.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    return digest.hexdigest()
+
+
+def starter_fingerprints() -> dict[str, str]:
+    """``{lesson slug: fingerprint}`` of the blank starters, computed now."""
+    return {
+        lesson.slug: fingerprint(lesson.starter)
+        for lesson in discover_lessons()
+        if lesson.starter.is_dir()
+    }
+
+
+def load_manifest() -> dict[str, str]:
+    if not STARTERS_MANIFEST.is_file():
+        return {}
+    data: dict[str, str] = json.loads(STARTERS_MANIFEST.read_text(encoding="utf-8"))
+    return data
+
+
+def learner_folder(lesson: Lesson, root: Path | None) -> Path | None:
+    """Where the learner's code for ``lesson`` lives: ``root/<slug>``, ``root/<NN>`` or starter/."""
+    if root is None:
+        return lesson.starter if lesson.starter.is_dir() else None
+    for candidate in (root / lesson.slug, root / lesson.number):
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
+@dataclass
+class Progress:
+    lesson: Lesson
+    status: str  # "passed" | "failed" | "not started"
+    passed: int = 0
+    total: int = 0
+    skipped: int = 0
+
+
+def lesson_progress(lesson: Lesson, root: Path | None, manifest: dict[str, str]) -> Progress:
+    folder = learner_folder(lesson, root)
+    if folder is None or not lesson.tests.is_dir():
+        return Progress(lesson, "not started")
+    if manifest.get(lesson.slug) == fingerprint(folder):
+        return Progress(lesson, "not started")  # still the blank starter: no need to run
+    result = run_tests(lesson, folder)
+    status = "passed" if result.ok else "failed"
+    return Progress(lesson, status, result.passed, result.total, result.skipped)
+
+
+STATUS_LABELS = {
+    "passed": ("✔", "passed", "قبول"),
+    "failed": ("✘", "failed", "ناتمام"),
+    "not started": ("·", "not started", "شروع‌نشده"),
+}
+
+
+def cmd_progress(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve() if args.root else None
+    if root is not None and not root.is_dir():
+        raise SystemExit(f"--root {root} is not a directory / پوشه وجود ندارد")
+    manifest = load_manifest()
+    where = str(root) if root else "lessons/*/starter"
+    print(bold(f"Progress / پیشرفت — {where}"))
+    print()
+    rows = [lesson_progress(lesson, root, manifest) for lesson in discover_lessons()]
+    for row in rows:
+        mark, en, fa = STATUS_LABELS[row.status]
+        colour = green if row.status == "passed" else red if row.status == "failed" else dim
+        checks = f"{row.passed}/{row.total}" if row.total else "–"
+        skipped = dim(f" ({row.skipped} skipped)") if row.skipped else ""
+        label = colour(f"{mark} {en:<12} {fa:<10}")
+        print(f"{row.lesson.number}  {row.lesson.slug:<28} {label} {checks:>7}{skipped}")
+    counts = {key: sum(r.status == key for r in rows) for key in STATUS_LABELS}
+    print()
+    print(
+        f"{counts['passed']} passed, {counts['failed']} failed, "
+        f"{counts['not started']} not started / "
+        f"{fa_num(counts['passed'])} قبول، {fa_num(counts['failed'])} ناتمام، "
+        f"{fa_num(counts['not started'])} شروع‌نشده"
+    )
+    nxt = next((r for r in rows if r.status != "passed"), None)
+    if nxt is not None:
+        print(dim(f"next / درس بعدی: python -m grader run {nxt.lesson.number}"))
+    return 0
+
+
+def cmd_fingerprint_starters(args: argparse.Namespace) -> int:
+    """Maintainers: refresh (or ``--check``) ``grader/starters.json`` after editing a starter."""
+    current = starter_fingerprints()
+    if args.check:
+        if load_manifest() != current:
+            fix = "python -m grader fingerprint-starters"
+            print(red(f"grader/starters.json is out of date: run {fix}"))
+            return 1
+        print(green("grader/starters.json matches the blank starters."))
+        return 0
+    STARTERS_MANIFEST.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote {STARTERS_MANIFEST} ({len(current)} starters)")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m grader", description="Persian RAG Academy grader / تصحیح‌کنندهٔ خودکار"
@@ -319,6 +436,19 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--path", help="folder with your code (default: the lesson's starter/)")
     p_run.add_argument("-v", "--verbose", action="store_true", help="show every failing case")
     p_run.set_defaults(func=cmd_run)
+
+    p_progress = sub.add_parser(
+        "progress", help="table of every lesson: passed / failed / not started"
+    )
+    p_progress.add_argument(
+        "--root",
+        help="folder with one subfolder per lesson (<slug> or <NN>); default: each starter/",
+    )
+    p_progress.set_defaults(func=cmd_progress)
+
+    p_fp = sub.add_parser("fingerprint-starters", help="(maintainers) refresh starters.json")
+    p_fp.add_argument("--check", action="store_true", help="fail if starters.json is stale")
+    p_fp.set_defaults(func=cmd_fingerprint_starters)
 
     p_check = sub.add_parser("check-solutions", help="run all lesson tests against parsrag")
     p_check.add_argument("-v", "--verbose", action="store_true")

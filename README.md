@@ -1,8 +1,10 @@
 # Persian RAG Academy
 
-**[فارسی](README.fa.md)** · **[Documentation (Persian)](https://snikookar.github.io/Persian-RAG-Academy/)** · **[Changelog](CHANGELOG.md)**
+**[فارسی](README.fa.md)** · **[Documentation (Persian)](https://snikookar.github.io/Persian-RAG-Academy/)** · **[Lesson summaries in English](docs/en/index.md)** · **[Changelog](CHANGELOG.md)**
 
 [![CI](https://github.com/snikookar/Persian-RAG-Academy/actions/workflows/ci.yml/badge.svg)](https://github.com/snikookar/Persian-RAG-Academy/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fsnikookar.github.io%2FPersian-RAG-Academy%2Fbadges%2Fcoverage.json)](https://github.com/snikookar/Persian-RAG-Academy/actions/workflows/ci.yml)
+[![mypy](https://img.shields.io/badge/types-mypy%20checked-2a6db2.svg)](https://github.com/snikookar/Persian-RAG-Academy/actions/workflows/ci.yml)
 [![Docs](https://github.com/snikookar/Persian-RAG-Academy/actions/workflows/docs.yml/badge.svg)](https://snikookar.github.io/Persian-RAG-Academy/)
 [![PyPI](https://img.shields.io/pypi/v/parsrag.svg)](https://pypi.org/project/parsrag/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
@@ -165,6 +167,10 @@ and opens every citation at its exact span in the source document:
 ![parsrag web UI: streamed answer with clickable citations and the source passage](docs/images/capstone_ui.png)
 
 ## Lessons
+
+The lessons are in Persian. **[Read the lesson summaries in English](docs/en/index.md)** — one
+short page per lesson with what you build, the key ideas and the measured results (also on the
+[docs site](https://snikookar.github.io/Persian-RAG-Academy/en/)).
 
 | # | Lesson | درس | GitHub | Docs |
 |---|---|---|---|---|

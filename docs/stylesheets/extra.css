@@ -26,3 +26,15 @@
 .md-typeset img {
   border-radius: 4px;
 }
+
+/* English lesson summaries (docs/en/): left-to-right text inside the RTL site. */
+.md-typeset .ltr-page {
+  direction: ltr;
+  text-align: left;
+}
+
+.md-typeset .ltr-page ul,
+.md-typeset .ltr-page ol {
+  margin-left: 0.625em;
+  margin-right: 0;
+}

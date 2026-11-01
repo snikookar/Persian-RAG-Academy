@@ -506,15 +506,83 @@ Deviations from the Day 7 brief:
 - The notebook check runs the offline cells with a small stdlib executor instead of `nbclient`
   (no new dependency); matplotlib comes from the existing `dev` extra.
 
-### Next session (Day 8) — optional ideas
+### Day 8 — 2026-11-01: 0.2.0 — real data, quality checks, English summaries
+
+Built:
+- **Index persistence** (`parsrag.rag`): `save()` writes format 2 (`rag.json` with
+  `format_version`, options, content hashes and the configuration; `documents.jsonl`,
+  `chunks.jsonl`, `bm25.json` with the tokenised index, `store/` for in-memory or FAISS
+  vectors), written to a temporary folder and swapped in. `load()` restores everything without
+  re-chunking, re-tokenising or re-embedding (tested with a counting embedding: 0 texts
+  embedded), rebuilds every part from the saved config when called without arguments, refuses
+  a different embedding class or a newer format, re-embeds on a dimension change, rebuilds when
+  a different chunker is passed, and still reads 0.1.0 folders.
+- **Incremental ingestion**: `upsert_documents(prune=...)` → `IndexUpdate` (added / updated /
+  unchanged / removed); `remove_documents` / `remove_document`; `delete(ids)` on the in-memory,
+  FAISS and pgvector stores; `BM25Retriever.remove/state/load_state`. BM25 after a removal
+  scores exactly like a fresh index of the remaining chunks.
+- **Metadata filters**: `ask/search/stream(filters=...)` on chunk or document metadata, resolved
+  to a `doc_id` list (`resolve_filter`) so pgvector understands them; `/ask` and `/ask/stream`
+  accept `filters` (in the cache key); `DELETE /documents/{id}`; `"upsert": true` on `/ingest`.
+- **Presets**: `PRESETS`, `config_template`, `preset_config`; `parsrag init --preset
+  {offline,ollama,openai-compatible}` with `<embedding-model>` / `<chat-model>` placeholders
+  that fail loudly until edited; Ollama embeddings; `api_key` in a config is rejected.
+- **CLI**: incremental `ingest` (automatic rebuild when `[chunking]`, `[embedding]` or `stem`
+  changed, `--prune`, `--rebuild`, `--no-save`), `remove`, `ask --filter`.
+- **Docs**: library / CLI / HTTP reference updated; Persian guide
+  `docs/guides/own-pdfs-ollama.md` (new "راهنماها" nav section).
+- **Quality signals**: mypy config in `pyproject.toml` (most strict-mode flags, pydantic
+  plugin, only untyped optional extras exempt) and 15 real issues fixed; CI runs `mypy` and
+  `pytest --cov` (floor 90%, measured 96.61%) and uploads `coverage.xml`; the docs deployment
+  writes `badges/coverage.json` for a shields.io endpoint badge; static mypy badge. GitHub
+  Actions bumped to checkout v7, setup-python v7, upload-artifact v7, download-artifact v8,
+  upload-pages-artifact v5, deploy-pages v5 (all `node24`; inputs checked against each
+  `action.yml`).
+- **English summaries**: `docs/en/index.md` + 15 lesson pages (378–550 words, numbers copied
+  from the Persian lessons), rendered LTR by a hook, "English" nav section, README link.
+- **Learner experience**: `python -m grader progress [--root DIR]` (passed / failed / not
+  started; untouched starters recognised by `grader/starters.json` fingerprints, checked in
+  CI with `fingerprint-starters --check`); a «چالش‌ها (اختیاری)» section with 2–3 open-ended
+  exercises at the end of every lesson.
+- **Release prep**: version 0.2.0 in `pyproject.toml` and `parsrag.__init__`; CHANGELOG
+  `## [0.2.0] - unreleased`. Nothing was published, tagged or released.
+
+Results: `ruff check .` and `ruff format --check .` clean · `mypy` clean (48 files) · `pytest`
+685 passed, 1 skipped (pgvector without DB), coverage 96.61% · `python -m grader
+check-solutions` all pass · `check-starters` all fail as they should · fingerprints current ·
+eval gate passes (numbers unchanged) · fixtures and README numbers reproduce · `mkdocs build
+--strict` passes · link checker clean (87 files) · notebook offline cells run · sdist/wheel
+0.2.0 pass `check_dist.py` and `twine check --strict`. Core-only install: 629 passed, 29
+skipped; all lessons pass.
+
+Decisions and deviations:
+- The existing `[Unreleased]` changelog block (lesson 14, UI refresh, Colab notebook) came
+  after the 0.1.0 entry ("14 lessons", 00–13), so it became part of `[0.2.0] - unreleased`.
+- `CITATION.cff` still says 0.1.0 (it should describe the latest *published* version).
+- The document hash leaves out `metadata.source`, so indexing the same folder from another
+  working directory is not a change.
+- `add_documents` stays strict (duplicate ids raise), as in 0.1.0; `upsert_documents` is the
+  new, forgiving path. `search(filter=...)` keeps working and now also resolves document keys.
+- `PersianRAG.load()` with a different `chunker` re-chunks and rebuilds only if the chunks
+  differ, preserving the 0.1.0 contract.
+
+Left out / not verified here:
+- Presets were not run against a real Ollama or OpenAI-compatible server (no models or network
+  in tests, by rule); the guide's model names are examples, not measured recommendations.
+- `PgVectorStore.delete` has no test against a real database (the pgvector suite needs
+  `PARSRAG_TEST_DATABASE_URL`); `/ingest/files` has no upsert option.
+- The coverage badge shows "resource not found" until the docs workflow has deployed from
+  `main` once; the bumped actions in `release.yml` only run on a release or manual dispatch.
+
+### Next session (Day 9) — optional ideas
 
 - Fill lesson 05's real-model table from actual notebook runs (contributors' PRs).
 - Attacks written by someone who has not seen the rules, and a held-out split of the attack
   fixtures; an LLM-judge detector compared with the rules.
 - **A Telegram bot example on top of `parsrag`** (`PersianRAG` + streaming answers with
   citations), optional dependency, never run in CI.
-- **English summaries of each lesson** (one short page per lesson on the docs site or in
-  `lessons/*/README.en.md`), so non-Persian readers can follow the library design.
+- Run the presets against real Ollama / hosted models and contribute measured rows (lesson 05
+  table, guide); test `PgVectorStore.delete` against PostgreSQL in a CI service container.
 - Still open from earlier days: a development split for `qa_paraphrase.jsonl` so rule-based or
   tuned components can be fitted without leakage; growing both QA sets; a relative BM25
   confidence for abstention; Redis-backed cache / rate limit as an optional extra; self-hosting

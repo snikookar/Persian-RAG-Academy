@@ -142,6 +142,14 @@ class PgVectorStore:
                 rows,
             )
 
+    def delete(self, ids: Iterable[str]) -> int:
+        """Delete chunks by id. Returns how many rows were removed."""
+        wanted = list(ids)
+        if not wanted:
+            return 0
+        cur = self._conn.execute(f"DELETE FROM {self.table} WHERE id = ANY(%s)", (wanted,))
+        return int(cur.rowcount or 0)
+
     def search_by_vector(
         self, vector: FloatArray, k: int = 4, *, filter: Filter | None = None
     ) -> list[SearchResult]:

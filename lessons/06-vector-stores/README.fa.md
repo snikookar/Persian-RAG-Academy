@@ -172,6 +172,13 @@ python -m grader run 06          # ۱۵ بررسی
 - Johnson, Douze & Jégou، *Billion-scale similarity search with GPUs* (2017) — مقالهٔ FAISS: [arXiv](https://arxiv.org/abs/1702.08734)؛ و [ویکی FAISS](https://github.com/facebookresearch/faiss/wiki) برای انتخاب نوع نمایه.
 - [pgvector](https://github.com/pgvector/pgvector) — جست‌وجوی برداری داخل PostgreSQL، با نمایه‌های HNSW و IVFFlat.
 
+## چالش‌ها (اختیاری)
+
+تمرین‌هایی باز، بدون پاسخ مرجع و بدون بررسی Grader، برای وقتی که می‌خواهید جلوتر بروید:
+
+1. **نقطهٔ سربه‌سر.** `vector_store_latency.py` را با اندازه‌های بزرگ‌تر اجرا کنید و پیدا کنید از چند بردار به بعد، روی کامپیوتر شما، FAISS HNSW از انبارهٔ درون‌حافظه‌ای سریع‌تر می‌شود (زمان ساخت را هم حساب کنید).
+2. **فیلتر پیش از جست‌وجو.** برای pgvector، اثر یک فیلتر بسیار انتخابی را روی دقت و سرعت جست‌وجوی HNSW بسنجید و با جست‌وجوی دقیق مقایسه کنید.
+
 ## درس بعد
 
 [درس ۰۷ — جست‌وجوی ترکیبی](../07-hybrid-search/README.fa.md): BM25 فارسی + برداری + ادغام رتبه‌ای (RRF).

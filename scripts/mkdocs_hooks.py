@@ -86,3 +86,10 @@ def on_page_context(context: dict[str, Any], page: Any, config: Any, nav: Any) -
         slug = src.removeprefix("lessons/").removesuffix(".md")
         page.edit_url = f"{REPO}/edit/main/lessons/{slug}/README.fa.md"
     return context
+
+
+def on_page_content(html: str, page: Any, config: Any, files: Any) -> str:
+    """The English summaries (``docs/en/``) read left to right inside the Persian site."""
+    if page.file.src_uri.startswith("en/"):
+        return f'<div class="ltr-page" dir="ltr" lang="en">\n{html}\n</div>'
+    return html

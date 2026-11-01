@@ -23,8 +23,8 @@ jobs:
     name: mkdocs build --strict
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -36,9 +36,15 @@ jobs:
         env:
           NO_MKDOCS_2_WARNING: "1"
         run: mkdocs build --strict
+      - name: Coverage badge data (main only; read by the README badge via shields.io)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          pip install -e ".[loaders,faiss,agent,api,openai]" pytest pytest-cov
+          pytest -q --cov=parsrag --cov-report=xml
+          python scripts/make_badges.py coverage.xml site/badges
       - name: Upload the site for Pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -55,4 +61,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

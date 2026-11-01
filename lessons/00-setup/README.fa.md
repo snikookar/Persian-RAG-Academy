@@ -51,6 +51,7 @@ pytest                          # همهٔ تست‌های کتابخانه و �
 python -m grader list           # فهرست درس‌ها
 python -m grader run 00         # بررسی کد شما در lessons/00-setup/starter
 python -m grader run 02 --path my_folder   # بررسی کد شما در پوشه‌ای دلخواه
+python -m grader progress       # جدول همهٔ درس‌ها: قبول / ناتمام / شروع‌نشده
 python -m grader check-solutions           # اجرای تست‌ها روی پاسخ مرجع (parsrag)
 ```
 
@@ -76,6 +77,8 @@ flowchart LR
     D -- نه --> F[💡 راهنمایی و تلاش دوباره]
     F --> A
 ```
+
+`python -m grader progress` تست‌های هر درس را روی کد شما اجرا می‌کند و یک جدول نشان می‌دهد: «قبول» (همهٔ بررسی‌ها سبز)، «ناتمام» (کد را تغییر داده‌اید ولی هنوز بررسی قرمز دارد) یا «شروع‌نشده» (`starter/` هنوز دست‌نخورده است و اصلاً اجرا نمی‌شود). اگر کدتان را جای دیگری نوشته‌اید، `--root my_work` بدهید: برای هر درس یک زیرپوشه با نام درس (`02-normalization`) یا شماره‌اش (`02`).
 
 پاسخ مرجع هر درس، ماژول متناظر در `src/parsrag/` است. اول خودتان تلاش کنید، بعد نگاه کنید. 😉
 
@@ -164,6 +167,13 @@ python -m parsrag.doctor                     # نسخهٔ مرجع
 - Weinberger et al.، *Feature Hashing for Large Scale Multitask Learning* (ICML 2009) — ایدهٔ «درهم‌سازی ویژگی‌ها» که `HashingEmbedding` بر پایهٔ آن است: [arXiv](https://arxiv.org/abs/0902.2206).
 - [مستندات pytest](https://docs.pytest.org/) — تصحیح‌کنندهٔ دوره روی pytest ساخته شده است.
 - [Ollama](https://github.com/ollama/ollama) — اجرای مدل‌های باز روی کامپیوتر خودتان، با API سازگار با OpenAI.
+
+## چالش‌ها (اختیاری)
+
+تمرین‌هایی باز، بدون پاسخ مرجع و بدون بررسی Grader، برای وقتی که می‌خواهید جلوتر بروید:
+
+1. **مدل واقعی، همان تست دود.** `smoke_test` را یک بار با `OpenAICompatibleLLM` و یک مدل محلی در Ollama اجرا کنید. چه چیزی باید عوض شود تا تست همچنان قطعی (Deterministic) بماند؟ چه چیزی را دیگر نمی‌توانید با `assert` بررسی کنید؟
+2. **دکتر سخت‌گیرتر.** `parsrag.doctor` را گسترش دهید تا بگوید آیا سرور Ollama در دسترس است و کدام مدل‌ها را دارد، بدون این‌که اجرای آفلاین تست‌ها به شبکه نیاز پیدا کند.
 
 ## درس بعد
 

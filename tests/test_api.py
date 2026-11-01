@@ -257,3 +257,39 @@ def test_build_rag_from_settings(tmp_path: Path) -> None:
     assert len(loaded) == len(rag)
     real = build_rag(Settings(docs=str(docs), llm_provider="ollama", llm_model="qwen2.5:7b"))
     assert type(real.llm).__name__ == "OpenAICompatibleLLM"
+
+
+def test_ask_with_filters_and_cache_keys(course: PersianRAG) -> None:
+    client = TestClient(create_app(course, OFF))
+    r = client.post("/ask", json={"question": PIK, "filters": {"doc_id": "mehregan-rules"}})
+    assert r.status_code == 200
+    data = r.json()
+    assert all(c["doc_id"] == "mehregan-rules" for c in data["citations"])
+    assert not data["cached"]
+    plain = client.post("/ask", json={"question": PIK}).json()
+    assert not plain["cached"]  # another filter is another cache entry
+    assert plain["citations"][0]["doc_id"] == "kahroba-shipping"
+    again = client.post("/ask", json={"question": PIK, "filters": {"doc_id": "mehregan-rules"}})
+    assert again.json()["cached"]
+    stream = client.post("/ask/stream", json={"question": PIK, "filters": {"doc_id": ["x"]}})
+    kinds = events(stream.text)
+    assert kinds[0] == ("sources", []) and kinds[-1][1]["abstained"]
+    bad = client.post("/ask", json={"question": PIK, "filters": {"doc_id": {"nested": 1}}})
+    assert bad.status_code == 422
+
+
+def test_delete_document_and_upsert_ingest() -> None:
+    rag = PersianRAG()
+    client = TestClient(create_app(rag, OFF))
+    doc = {"id": "pool", "text": "استخر محله دوشنبه‌ها تعطیل است.", "metadata": {"lang": "fa"}}
+    assert client.post("/ingest", json={"documents": [doc]}).status_code == 200
+    assert client.post("/ingest", json={"documents": [doc]}).status_code == 409
+    r = client.post("/ingest", json={"documents": [doc], "upsert": True}).json()
+    assert r["unchanged_documents"] == ["pool"] and r["added_chunks"] == 0
+    changed = {**doc, "text": "استخر محله سه‌شنبه‌ها تعطیل است."}
+    r = client.post("/ingest", json={"documents": [changed], "upsert": True}).json()
+    assert r["updated_documents"] == ["pool"] and r["added_chunks"] == 1
+    gone = client.delete("/documents/pool")
+    assert gone.status_code == 200 and gone.json()["removed_chunks"] == 1
+    assert client.delete("/documents/pool").status_code == 404
+    assert client.post("/ask", json={"question": "استخر کی تعطیل است؟"}).status_code == 409

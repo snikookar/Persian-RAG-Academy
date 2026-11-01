@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "parsrag"
-version = "0.1.0"
+version = "0.2.0"
 description = "Build, evaluate, and ship Retrieval-Augmented Generation (RAG) for Persian text — offline-first, with a free Persian course."
 # The PyPI readme is README.md with relative links made absolute (see the hook below).
 dynamic = ["readme"]
@@ -71,7 +71,7 @@ dev = ["matplotlib>=3.7", "fpdf2>=2.7"]
 docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5,<10"]
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.5"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5", "mypy>=1.10"]
 
 [project.urls]
 Homepage = "https://github.com/snikookar/Persian-RAG-Academy"
@@ -111,6 +111,16 @@ markers = [
     "hint(fa, en): a learner-facing hint shown by the grader when the test fails",
 ]
 
+[tool.coverage.run]
+source = ["parsrag"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+# CI fails below this (measured 97% when the floor was introduced).
+fail_under = 90
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
@@ -136,3 +146,37 @@ known-first-party = ["parsrag", "grader"]
 # Long OOXML content-type strings and Persian sample sentences.
 "data/fixtures/build_fixtures.py" = ["E501"]
 "examples/*.py" = ["E501"]
+
+[tool.mypy]
+# `mypy` (CI) checks the library with most strict-mode checks on.
+files = ["src/parsrag"]
+python_version = "3.10"
+plugins = ["pydantic.mypy"]
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+warn_return_any = true
+extra_checks = true
+
+# Optional extras without type information (imported lazily inside functions).
+[[tool.mypy.overrides]]
+module = [
+    "faiss.*",
+    "pypdf.*",
+    "docx.*",
+    "bs4.*",
+    "sentence_transformers.*",
+    "psycopg.*",
+    "pgvector.*",
+    "langgraph.*",
+    "langchain_core.*",
+    "uvicorn.*",
+    "tomli.*",
+]
+ignore_missing_imports = true

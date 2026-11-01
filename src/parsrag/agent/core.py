@@ -251,9 +251,9 @@ class AgenticRAG:
     def refuse(self, state: AgentState) -> dict[str, Any]:
         if state.get("route") == "out_of_scope":
             reason = "out_of_scope"
-        elif state.get("draft") and not state["draft"]["abstained"]:
+        elif (draft := state.get("draft")) and not draft["abstained"]:
             reason = "unfaithful"
-        elif state.get("draft"):
+        elif draft:
             reason = "model"
         else:
             reason = "not_relevant"
@@ -261,7 +261,7 @@ class AgenticRAG:
             question=state["question"],
             answer=REFUSAL,
             abstained=True,
-            abstain_reason=reason,  # type: ignore[arg-type]
+            abstain_reason=reason,
             sources=_results(state.get("relevant") or state.get("results") or []),
         )
         return {"answer": answer.model_dump(), "trace": ["refuse"]}

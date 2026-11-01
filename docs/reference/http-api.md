@@ -24,10 +24,11 @@ PARSRAG_LLM_PROVIDER=ollama PARSRAG_LLM_MODEL=qwen2.5:7b docker compose up
 |---|---|---|
 | `GET /` | رابط وب راست‌به‌چپ (بارگذاری، پرسش، ارجاع قابل‌کلیک) | HTML |
 | `GET /health` | سلامت سرویس | وضعیت، تعداد سند و قطعه، نسخهٔ نمایه، آمار کش |
-| `POST /ingest` | افزودن سند به‌صورت JSON | `{"documents": [{"id", "text", "title"}]}` |
+| `POST /ingest` | افزودن سند به‌صورت JSON؛ با `"upsert": true` سند تغییرکرده بازنمایه و سند بی‌تغییر رد می‌شود | `{"documents": [{"id", "text", "title", "metadata"}]}` |
 | `POST /ingest/files` | بارگذاری فایل (TXT، MD، HTML، DOCX، PDF) | مثل بالا |
 | `GET /documents`، `GET /documents/{id}` | فهرست و متن کامل سندها | JSON |
-| `POST /ask` | پرسش ← پاسخ با ارجاع | `AskResponse` |
+| `DELETE /documents/{id}` | حذف سند با قطعه‌ها و بردارهایش | تعداد قطعه‌های حذف‌شده |
+| `POST /ask` | پرسش ← پاسخ با ارجاع؛ `filters` اختیاری | `AskResponse` |
 | `POST /ask/stream` | همان، به‌صورت رویدادهای سرور (Server-Sent Events) | `sources` ← `token`… ← `done` |
 
 ```bash
@@ -43,6 +44,17 @@ curl -s -X POST http://127.0.0.1:8000/ask -H 'content-type: application/json' \
 ```
 
 `passage` متن **اصلی** سند است (با `start` و `end`)، نه متن نرمال‌شده.
+
+### فیلتر فراداده
+
+`/ask` و `/ask/stream` فیلد اختیاری `filters` را می‌پذیرند؛ همان معنای `rag.ask(..., filters=...)` در [کتابخانه](library.md) (بخش «فیلتر فراداده») را دارد (مقدار ساده یا فهرستی از مقدارها، حداکثر ۲۰ کلید):
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/ask -H 'content-type: application/json' \
+     -d '{"question": "هزینهٔ پیک در تهران چقدر است؟", "filters": {"doc_id": ["kahroba-shipping"]}}'
+```
+
+کش پاسخ، فیلترها را هم در کلید حساب می‌کند. اگر هیچ سندی جور نباشد، پاسخ «نمی‌دانم» با `abstain_reason: "no_results"` است.
 
 با محافظ درس ۱۴، فیلد `security` مشکل‌های پیداشده در پاسخ را فهرست می‌کند (مثلاً `["link_removed"]`)، و پاسخ ردشده `"abstain_reason": "unsafe"` دارد. در این حالت `/ask/stream` پاسخ را اول کامل بررسی می‌کند و بعد توکن‌ها را می‌فرستد.
 
@@ -90,6 +102,8 @@ data: {"answer": "هزینهٔ پیک در تهران 200 هزار تومان ا
 |---|---|---|
 | هنوز سندی نمایه نشده | 409 | `empty_index` |
 | سند تکراری | 409 | `duplicate_document` |
+| سند پیدا نشد | 404 | `not_found` |
+| انباره حذف را پشتیبانی نمی‌کند | 409 | `not_supported` |
 | ورودی نامعتبر (پرسش خالی، بیش از ۲۰۰۰ نویسه) | 422 | اعتبارسنجی FastAPI |
 | فایل بزرگ‌تر از حد / نوع پشتیبانی‌نشده | 413 / 415 | `file_too_large` / `unsupported_file` |
 | درخواست زیاد | 429 | `rate_limited` و سرآیند `Retry-After` |

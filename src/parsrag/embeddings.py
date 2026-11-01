@@ -48,7 +48,7 @@ def l2_normalize(matrix: FloatArray) -> FloatArray:
     """Normalise each row to unit length (zero rows stay zero)."""
     norms = np.linalg.norm(matrix, axis=-1, keepdims=True)
     norms[norms == 0] = 1.0
-    return (matrix / norms).astype(np.float32)
+    return np.asarray(matrix / norms, dtype=np.float32)
 
 
 def cosine_similarity(a: npt.ArrayLike, b: npt.ArrayLike) -> float:
@@ -131,7 +131,7 @@ class HashingEmbedding:
         return l2_normalize(np.stack([self._vector(t) for t in texts]))
 
     def embed_query(self, text: str) -> FloatArray:
-        return self.embed([text])[0]
+        return np.asarray(self.embed([text])[0], dtype=np.float32)
 
 
 class SentenceTransformerEmbedding:
@@ -182,7 +182,7 @@ class SentenceTransformerEmbedding:
         return self._encode([self.document_prefix + t for t in texts])
 
     def embed_query(self, text: str) -> FloatArray:
-        return self._encode([self.query_prefix + text])[0]
+        return np.asarray(self._encode([self.query_prefix + text])[0], dtype=np.float32)
 
 
 class TfidfEmbedding:
@@ -230,7 +230,7 @@ class TfidfEmbedding:
         if self.analyzer == "word":
             return words
         lo, hi = self.ngram_range
-        out = []
+        out: list[str] = []
         for word in words:
             padded = f"<{word}>"
             for n in range(lo, hi + 1):
@@ -276,7 +276,7 @@ class TfidfEmbedding:
         return l2_normalize(matrix)
 
     def embed_query(self, text: str) -> FloatArray:
-        return self.embed([text])[0]
+        return np.asarray(self.embed([text])[0], dtype=np.float32)
 
 
 class OpenAICompatibleEmbedding:
@@ -366,4 +366,4 @@ class OpenAICompatibleEmbedding:
         return self._encode([self.document_prefix + t for t in texts])
 
     def embed_query(self, text: str) -> FloatArray:
-        return self._encode([self.query_prefix + text])[0]
+        return np.asarray(self._encode([self.query_prefix + text])[0], dtype=np.float32)

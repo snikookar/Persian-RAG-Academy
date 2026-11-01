@@ -93,6 +93,21 @@ class InMemoryVectorStore:
         self._chunks.extend(new)
         self._ids = seen
 
+    def delete(self, ids: Iterable[str]) -> int:
+        """Remove chunks by id (unknown ids are ignored). Returns how many were removed."""
+        gone = set(ids) & self._ids
+        if not gone:
+            return 0
+        keep = [i for i, c in enumerate(self._chunks) if c.id not in gone]
+        self._matrix = self._matrix[keep]
+        self._chunks = [self._chunks[i] for i in keep]
+        self._ids -= gone
+        return len(gone)
+
+    def vectors(self) -> FloatArray:
+        """The stored (L2-normalised) vectors, one row per chunk in :attr:`chunks` order."""
+        return np.array(self._matrix, dtype=np.float32, copy=True)
+
     def search_by_vector(
         self, vector: FloatArray, k: int = 4, *, filter: Filter | None = None
     ) -> list[SearchResult]:

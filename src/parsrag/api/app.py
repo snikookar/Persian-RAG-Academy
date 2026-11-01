@@ -5,7 +5,8 @@
 ``POST /ingest``          add documents given as JSON
 ``POST /ingest/files``    add uploaded files (TXT, MD, HTML, DOCX, PDF)
 ``GET  /documents``       list indexed documents; ``/documents/{id}`` = full text
-``POST /ask``             answer + citations (each with its source passage)
+``DELETE /documents/{id}`` remove a document (its chunks and vectors) from the index
+``POST /ask``             answer + citations; optional ``filters`` on metadata
 ``POST /ask/stream``      the same, as Server-Sent Events: sources → token… → done
 ``GET  /``                the web UI of lesson 13
 ``GET  /static/fonts/…``   the bundled Vazirmatn web fonts (SIL OFL 1.1) for the UI
@@ -22,7 +23,7 @@ import json
 import tempfile
 import threading
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -61,6 +62,8 @@ class DocumentIn(BaseModel):
 
 class IngestRequest(BaseModel):
     documents: list[DocumentIn] = Field(min_length=1)
+    #: ``True``: re-index changed documents and skip unchanged ones instead of 409.
+    upsert: bool = False
 
 
 class IngestResponse(BaseModel):
@@ -69,10 +72,18 @@ class IngestResponse(BaseModel):
     documents: int
     chunks: int
     index_version: int
+    updated_documents: list[str] = Field(default_factory=list)
+    unchanged_documents: list[str] = Field(default_factory=list)
+
+
+FilterValue = str | int | float | bool | None | list[str | int | float | bool | None]
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
+    #: Metadata filter, e.g. ``{"doc_id": ["faq"]}`` or ``{"format": "pdf"}`` — see
+    #: :meth:`parsrag.PersianRAG.resolve_filter`.
+    filters: dict[str, FilterValue] | None = Field(default=None, max_length=20)
 
 
 class StageTimings(BaseModel):
@@ -146,37 +157,70 @@ class RAGService:
         self.lock = threading.RLock()
         self.logger = get_logger(settings.log_level)
 
-    def ingest(self, docs: list[Document]) -> IngestResponse:
+    def ingest(self, docs: list[Document], *, upsert: bool = False) -> IngestResponse:
         with self.lock:
             try:
-                added = self.rag.add_documents(docs)
+                if upsert:
+                    report = self.rag.upsert_documents(docs)
+                    added_ids, added = report.added, report.chunks_added
+                    updated, unchanged = report.updated, report.unchanged
+                else:
+                    added = self.rag.add_documents(docs)
+                    added_ids, updated, unchanged = [d.id for d in docs], [], []
             except ValueError as exc:
                 raise APIError(409, "duplicate_document", str(exc)) from exc
             return IngestResponse(
-                added_documents=[d.id for d in docs],
+                added_documents=added_ids,
                 added_chunks=added,
                 documents=len(self.rag.documents),
                 chunks=len(self.rag),
                 index_version=self.rag.index_version,
+                updated_documents=updated,
+                unchanged_documents=unchanged,
             )
 
-    def retrieve(self, question: str) -> tuple[Any, list[Any]]:
+    def remove(self, doc_id: str) -> dict[str, Any]:
+        with self.lock:
+            if doc_id not in self.rag.documents:
+                raise APIError(404, "not_found", f"no document {doc_id!r}")
+            try:
+                removed = self.rag.remove_document(doc_id)
+            except NotImplementedError as exc:
+                raise APIError(409, "not_supported", str(exc)) from exc
+            return {
+                "removed_document": doc_id,
+                "removed_chunks": removed,
+                "documents": len(self.rag.documents),
+                "chunks": len(self.rag),
+                "index_version": self.rag.index_version,
+            }
+
+    def retrieve(
+        self, question: str, filters: dict[str, Any] | None = None
+    ) -> tuple[Any, list[Any]]:
         with self.lock:
             try:
                 self.rag._check_index()
             except EmptyIndexError as exc:
                 raise APIError(409, "empty_index", str(exc)) from exc
             gen = self.rag.generator
-            return gen, gen.retriever.search(question, gen.k)
+            flt = self.rag.resolve_filter(filters)
+            return gen, gen.retriever.search(question, gen.k, filter=flt)
+
+    def _key(self, question: str, filters: dict[str, Any] | None) -> str:
+        version: int | str = self.rag.index_version
+        if filters:
+            version = f"{version}|{json.dumps(filters, sort_keys=True, ensure_ascii=False)}"
+        return cache_key(question, version)
 
     def to_response(self, answer: GroundedAnswer, timings: StageTimings) -> AskResponse:
         payload = answer_payload(self.rag, answer)
         return AskResponse(**payload.model_dump(), timings=timings)
 
-    async def ask(self, question: str) -> AskResponse:
-        key = cache_key(question, self.rag.index_version)
+    async def ask(self, question: str, filters: dict[str, Any] | None = None) -> AskResponse:
+        key = self._key(question, filters)
         start = time.perf_counter()
-        hit = self.cache.get(key)
+        hit: AskResponse | None = self.cache.get(key)
         if hit is not None:
             total = (time.perf_counter() - start) * 1000
             response = hit.model_copy(
@@ -184,7 +228,7 @@ class RAGService:
             )
             self._log(question, response)
             return response
-        gen, results = await asyncio.to_thread(self.retrieve, question)
+        gen, results = await asyncio.to_thread(self.retrieve, question, filters)
         t1 = time.perf_counter()
         try:
             answer = await asyncio.wait_for(
@@ -229,11 +273,13 @@ class RAGService:
             **{k: round(v, 2) for k, v in response.timings.model_dump().items()},
         )
 
-    async def stream(self, question: str) -> AsyncIterator[str]:
+    async def stream(
+        self, question: str, filters: dict[str, Any] | None = None
+    ) -> AsyncIterator[str]:
         """Server-Sent Events: ``sources``, then ``token`` events, then ``done`` (or ``error``)."""
         start = time.perf_counter()
-        key = cache_key(question, self.rag.index_version)
-        hit = self.cache.get(key)
+        key = self._key(question, filters)
+        hit: AskResponse | None = self.cache.get(key)
         if hit is not None:
             yield sse("sources", [c.model_dump() for c in hit.citations])
             for piece in split_for_streaming(hit.answer):
@@ -244,7 +290,7 @@ class RAGService:
             yield sse("done", done.model_dump())
             return
         try:
-            gen, results = await asyncio.to_thread(self.retrieve, question)
+            gen, results = await asyncio.to_thread(self.retrieve, question, filters)
         except APIError as exc:
             yield sse("error", {"error": exc.error, "message": exc.message})
             return
@@ -298,12 +344,11 @@ class RAGService:
         yield sse("done", response.model_dump())
 
 
-async def _iterate_in_thread(iterator: Any, timeout: float) -> AsyncIterator[str]:
+async def _iterate_in_thread(iterator: Iterator[str], timeout: float) -> AsyncIterator[str]:
     """Pull a blocking iterator in a worker thread, with a timeout per piece."""
-    sentinel = object()
     while True:
-        item = await asyncio.wait_for(asyncio.to_thread(next, iterator, sentinel), timeout)
-        if item is sentinel:
+        item = await asyncio.wait_for(asyncio.to_thread(next, iterator, None), timeout)
+        if item is None:
             return
         yield item
 
@@ -390,7 +435,7 @@ def create_app(
         client = request.headers.get("x-api-key") or (
             request.client.host if request.client else "unknown"
         )
-        limited = request.method == "POST"
+        limited = request.method in ("POST", "DELETE")
         if limited:
             decision = service.limiter.check(client)
             if not decision.allowed:
@@ -438,7 +483,7 @@ def create_app(
     @app.post("/ingest", response_model=IngestResponse, responses=error_responses)
     async def ingest(body: IngestRequest) -> IngestResponse:
         docs = [Document(**d.model_dump()) for d in body.documents]
-        return await asyncio.to_thread(service.ingest, docs)
+        return await asyncio.to_thread(service.ingest, docs, upsert=body.upsert)
 
     @app.post("/ingest/files", response_model=IngestResponse, responses=error_responses)
     async def ingest_files(files: list[UploadFile] = File(...)) -> IngestResponse:  # noqa: B008
@@ -477,14 +522,18 @@ def create_app(
             raise APIError(404, "not_found", f"no document {doc_id!r}")
         return {"id": doc.id, "title": doc.title, "text": doc.text}
 
+    @app.delete("/documents/{doc_id}", responses={404: {"model": ErrorResponse}, **error_responses})
+    async def delete_document(doc_id: str) -> dict[str, Any]:
+        return await asyncio.to_thread(service.remove, doc_id)
+
     @app.post("/ask", response_model=AskResponse, responses=error_responses)
     async def ask(body: AskRequest) -> AskResponse:
-        return await service.ask(body.question)
+        return await service.ask(body.question, body.filters)
 
     @app.post("/ask/stream", responses={200: {"content": {"text/event-stream": {}}}})
     async def ask_stream(body: AskRequest) -> StreamingResponse:
         return StreamingResponse(
-            service.stream(body.question),
+            service.stream(body.question, body.filters),
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
