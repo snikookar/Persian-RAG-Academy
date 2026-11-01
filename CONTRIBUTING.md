@@ -128,7 +128,9 @@ automatically, and `scripts/check_links.py` checks them.
   solution is, and a suggested order of the TODOs.
 - Signatures, types, docstrings and boilerplate are given; bodies to write raise
   `NotImplementedError("TODO: ...")`. A blank starter must load and fail
-  (`python -m grader check-starters`).
+  (`python -m grader check-starters`). After changing a starter, refresh its fingerprint
+  with `python -m grader fingerprint-starters` (CI checks it with `--check`), so
+  `python -m grader progress` still reports untouched starters as "not started".
 
 ### Grader tests and hints
 

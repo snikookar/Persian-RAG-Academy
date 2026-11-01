@@ -45,6 +45,8 @@ jobs:
         run: python -m grader check-solutions
       - name: Every blank starter loads and fails
         run: python -m grader check-starters
+      - name: Starter fingerprints (used by `grader progress`) are up to date
+        run: python -m grader fingerprint-starters --check
       - name: Eval gate — fail if quality drops below the committed baseline
         run: python -m parsrag.eval gate --baseline docs/eval/baseline.json
       - name: Committed fixtures are reproducible

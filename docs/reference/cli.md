@@ -137,6 +137,7 @@ API و رابط وب ([API وب](http-api.md))؛ به افزونهٔ `api` نی�
 ```bash
 python -m grader list                    # فهرست درس‌ها
 python -m grader run 07 --path my/dir    # تصحیح کد شما برای درس ۰۷
+python -m grader progress                # جدول پیشرفت: قبول / ناتمام / شروع‌نشده (--root my/work)
 python -m grader check-solutions         # پاسخ مرجع همهٔ درس‌ها را بسنج
 python -m parsrag.eval run --markdown docs/eval/report.md
 python -m parsrag.eval gate --baseline docs/eval/baseline.json

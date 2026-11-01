@@ -114,3 +114,59 @@ def test_starter_problem_classifies_results() -> None:
     assert starter_problem(RunResult()) == "no checks ran"
     broken = RunResult(collection_errors=["SyntaxError"], exit_code=2)
     assert "cannot be collected" in str(starter_problem(broken))
+
+
+# ----------------------------------------------------------------- progress (0.2.0)
+
+
+def test_fingerprint_ignores_line_endings_and_caches(tmp_path: Path) -> None:
+    from grader.cli import fingerprint
+
+    a, b = tmp_path / "a", tmp_path / "b"
+    for folder, text in ((a, b"x = 1\n"), (b, b"x = 1\r\n")):
+        (folder / "__pycache__").mkdir(parents=True)
+        (folder / "m.py").write_bytes(text)
+    (b / "__pycache__" / "m.cpython.pyc").write_bytes(b"junk")
+    (b / "__pycache__" / "ignored.py").write_bytes(b"junk")
+    assert fingerprint(a) == fingerprint(b)
+    (b / "m.py").write_bytes(b"x = 2\n")
+    assert fingerprint(a) != fingerprint(b)
+
+
+def test_progress_table(tmp_path: Path) -> None:
+    import shutil
+
+    done = tmp_path / "00"  # the reference solution as the learner's lesson 00
+    done.mkdir()
+    shutil.copy(REPO_ROOT / "src" / "parsrag" / "doctor.py", done / "doctor.py")
+    started = tmp_path / "01-rag-in-50-lines"  # edited starter: runs and fails
+    shutil.copytree(REPO_ROOT / "lessons" / "01-rag-in-50-lines" / "starter", started)
+    with (started / "naive_rag.py").open("a", encoding="utf-8") as f:
+        f.write("\n# my first edit\n")
+    blank = tmp_path / "02-normalization"  # untouched starter: not run at all
+    shutil.copytree(REPO_ROOT / "lessons" / "02-normalization" / "starter", blank)
+    proc = _grader("progress", "--root", str(tmp_path))
+    assert proc.returncode == 0, proc.stderr
+    lines = {line[:2]: line for line in proc.stdout.splitlines() if line[:2].isdigit()}
+    assert "passed" in lines["00"] and "10/10" in lines["00"]
+    assert "failed" in lines["01"] and "/17" in lines["01"]
+    assert "not started" in lines["02"] and "not started" in lines["14"]
+    assert "1 passed, 1 failed, 13 not started" in proc.stdout
+    assert "python -m grader run 01" in proc.stdout
+
+
+def test_progress_bad_root_and_manifest_check(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import grader.cli as cli
+
+    with pytest.raises(SystemExit):
+        main(["progress", "--root", str(tmp_path / "missing")])
+    # (CI runs `python -m grader fingerprint-starters --check` on the committed starters;
+    # here the manifest is redirected so a learner's edited starters never fail this test.)
+    monkeypatch.setattr(cli, "STARTERS_MANIFEST", tmp_path / "starters.json")
+    assert main(["fingerprint-starters", "--check"]) == 1
+    assert main(["fingerprint-starters"]) == 0
+    assert main(["fingerprint-starters", "--check"]) == 0
+    assert set(cli.load_manifest()) == {lesson.slug for lesson in discover_lessons()}
+    capsys.readouterr()
