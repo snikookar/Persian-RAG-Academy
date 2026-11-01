@@ -178,6 +178,8 @@ docker compose up --build        # API + PostgreSQL/pgvector ← http://localhos
 
 از گزارش اشکال، نظر دربارهٔ درس‌ها، اصلاح و درس تازه استقبال می‌کنیم. پیش از شروع [CONTRIBUTING.md](CONTRIBUTING.md) (ساختار درس‌ها، قواعد نوشتن داده‌های نمونه، اجرای تصحیح‌کننده و دروازهٔ ارزیابی) و [آیین‌نامهٔ رفتاری](CODE_OF_CONDUCT.md) را بخوانید. برای مشکلات امنیتی [SECURITY.md](SECURITY.md) را ببینید.
 
+دنبال یک کار کوچک برای شروع هستید؟ فهرست [مشارکت‌های مناسب برای شروع](CONTRIBUTING.md#help-wanted--good-first-contributions) را ببینید.
+
 ## مجوز
 
 [MIT](LICENSE). همهٔ داده‌های نمونهٔ فارسی در `data/fixtures/` برای همین مخزن نوشته شده‌اند و زیر همین مجوزند. رابط وب فونت وزیرمتن (© The Vazirmatn Project Authors) را همراه دارد که زیر [مجوز SIL Open Font License 1.1](src/parsrag/api/static/fonts/OFL.txt) است.
