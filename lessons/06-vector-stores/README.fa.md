@@ -19,7 +19,7 @@ from parsrag.stores import InMemoryVectorStore, FaissVectorStore, PgVectorStore
 store.add(chunks)                                   # برداری‌سازی و ذخیره
 store.add(chunks, vectors)                          # یا با بردارهای ازپیش‌ساخته
 store.search("ساعت کاری کتابخانه", k=4)
-store.search("کتابخانه", k=4, filter={"doc_id": "sepidar-rules"})
+store.search("کتابخانه", k=4, filter={"doc_id": "mehregan-rules"})
 store.search("کتابخانه", k=4, filter={"section": ["ساعت", "امانت"]})   # «یکی از این‌ها»
 store.search("کتابخانه", k=4, filter=lambda c: c.metadata["page"] > 1)  # هر شرطی
 ```

@@ -8,7 +8,7 @@ The generated files reproduce problems found in real Persian documents:
 
 * ``kahroba-catalog.pdf`` — glyphs stored as Arabic *presentation forms* in
   logical order, ZWNJs lost (typical of many PDF producers).
-* ``sepidar-newsletter.pdf`` — presentation forms stored in *visual* order,
+* ``mehregan-newsletter.pdf`` — presentation forms stored in *visual* order,
   ZWNJs lost (typical of older PDF tools): naive extraction reads backwards.
 * ``kahroba-installation-guide.docx`` — headings, a table, and invisible
   RLM marks around Latin model numbers, as Word inserts them.
@@ -137,9 +137,9 @@ DOCX_CONTENT: list[tuple[str, object]] = [
         "Table",
         [
             ["ظرفیت دستگاه", "هزینهٔ نصب"],
-            ["۹ هزار", "۹۰۰ هزار تومان"],
-            ["۱۸ هزار", "۱٫۲ میلیون تومان"],
-            ["۲۴ هزار", "۱٫۵ میلیون تومان"],
+            ["۹ هزار", "۴ میلیون تومان"],
+            ["۱۸ هزار", "۵٫۲ میلیون تومان"],
+            ["۲۴ هزار", "۶٫۵ میلیون تومان"],
         ],
     ),
     ("Normal", "لوله‌کشی بیش از ۳ متر جداگانه حساب می‌شود."),
@@ -286,11 +286,11 @@ def main(argv: list[str] | None = None) -> int:
             title="کاتالوگ لوازم برقی کهربا",
         )
         build_pdf(
-            SOURCES / "sepidar-newsletter.txt",
-            DOCS / "sepidar-newsletter.pdf",
+            SOURCES / "mehregan-newsletter.txt",
+            DOCS / "mehregan-newsletter.pdf",
             visual=True,
             font=font,
-            title="خبرنامهٔ کتابخانهٔ سپیدار",
+            title="خبرنامهٔ کتابخانهٔ مهرگان",
         )
     for path in sorted(DOCS.glob("*.*")):
         print(f"{path.stat().st_size:>8,} bytes  {path.relative_to(HERE)}")

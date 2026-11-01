@@ -31,7 +31,7 @@ def _texts(spans: list[Span]) -> list[str]:
     [
         ("سلام. خوبی؟ بله!", ["سلام.", "خوبی؟", "بله!"]),
         ("قیمت 2.5 میلیون است. تمام.", ["قیمت 2.5 میلیون است.", "تمام."]),
-        ("بودجه ۹٫۶ میلیارد بود؛ کافی نبود.", ["بودجه ۹٫۶ میلیارد بود؛", "کافی نبود."]),
+        ("بودجه ۴۲٫۵ میلیارد بود؛ کافی نبود.", ["بودجه ۴۲٫۵ میلیارد بود؛", "کافی نبود."]),
         ("نشانی www.kahroba.ir است. بیا", ["نشانی www.kahroba.ir است.", "بیا"]),
         ("ساعت ۱۰ ق.ظ. شروع شد.", ["ساعت ۱۰ ق.ظ. شروع شد."]),
         ("دکتر م. رضایی آمد. رفت.", ["دکتر م. رضایی آمد.", "رفت."]),
@@ -67,7 +67,7 @@ def test_estimate_tokens() -> None:
     ids=["fixed", "recursive", "window"],
 )
 def test_spans_point_into_the_source(chunker: Chunker) -> None:
-    doc = load_markdown(CORPUS / "sepidar-annual-report.md")
+    doc = load_markdown(CORPUS / "mehregan-annual-report.md")
     spans = chunker.split(doc.text)
     assert spans
     assert all(doc.text[s.start : s.end] == s.text and s.text == s.text.strip() for s in spans)
@@ -191,7 +191,7 @@ def test_numbers_quoted_in_lesson04() -> None:
     docs = bench.load_directory(CORPUS, "*.md")
     n, _, fixed = bench.run(docs, FixedSizeChunker(200, 25))
     assert n == 175
-    assert (round(fixed["P-R@3"], 3), round(fixed["P-MRR"], 3)) == (0.780, 0.670)
+    assert (round(fixed["P-R@3"], 3), round(fixed["P-MRR"], 3)) == (0.763, 0.660)
     n, _, best = bench.run(docs, RecursiveChunker(400, 50), heading_context=True)
     assert n == 109
-    assert (round(best["P-R@3"], 3), round(best["P-MRR"], 3)) == (0.983, 0.858)
+    assert (round(best["P-R@3"], 3), round(best["P-MRR"], 3)) == (0.983, 0.841)

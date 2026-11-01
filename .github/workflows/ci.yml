@@ -125,7 +125,7 @@ jobs:
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/health && break; sleep 1; done
           curl -fsS -X POST http://127.0.0.1:8000/ask -H 'content-type: application/json' \
             -d '{"question": "هزینهٔ پیک در تهران چقدر است؟"}' | tee answer.json
-          grep -q '45 هزار تومان' answer.json
+          grep -q '200 هزار تومان' answer.json
           test "$(docker exec parsrag id -u)" = "10001"
           docker logs parsrag | head -5
       - name: Compose file is valid

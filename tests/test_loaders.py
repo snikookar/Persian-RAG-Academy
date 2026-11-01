@@ -73,7 +73,7 @@ def test_recover_zwnj_needs_glyph_shapes() -> None:
         ("تسا PDF file هخسن", "نسخه PDF file است"),
         ("(مالس)", "(سلام)"),
         ("«کتاب»", "«باتک»"),
-        ("ir.sepidar-library.www", "ir.sepidar-library.www"),
+        ("ir.mehregan-library.www", "ir.mehregan-library.www"),
     ],
 )
 def test_visual_to_logical(visual: str, logical: str) -> None:
@@ -98,7 +98,7 @@ def test_visual_order_detection() -> None:
 
 
 def test_repair_pdf_text_recovers_simulated_legacy_text() -> None:
-    original = _source("sepidar-newsletter.txt")
+    original = _source("mehregan-newsletter.txt")
     repaired, visual = repair_pdf_text(to_visual(shape(original)))
     assert visual and repaired == original
     repaired, visual = repair_pdf_text(shape(original), fix_visual="auto")
@@ -177,7 +177,7 @@ def test_load_directory_dedupes_ids(tmp_path: Path) -> None:
 def test_missing_extra_message(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(sys.modules, "bs4", None)
     with pytest.raises(ImportError, match=r"parsrag\[loaders\]"):
-        load_document(DOCS / "sepidar-events.html")
+        load_document(DOCS / "mehregan-events.html")
 
 
 # ----------------------------------------------------- loaders with extras
@@ -185,11 +185,11 @@ def test_missing_extra_message(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_load_html_strips_boilerplate() -> None:
     pytest.importorskip("bs4")
-    doc = load_document(DOCS / "sepidar-events.html")
-    assert doc.title == "رویدادهای پاییز کتابخانهٔ سپیدار"
+    doc = load_document(DOCS / "mehregan-events.html")
+    assert doc.title == "رویدادهای پاییز کتابخانهٔ مهرگان"
     assert doc.text.startswith("# رویدادهای پاییز")
     assert "## هفتهٔ کتاب" in doc.text and "### هزینهٔ ثبت‌نام" in doc.text
-    assert "کارگاه داستان‌نویسی | ۴۰ هزار تومان | ۸۰ هزار تومان" in doc.text
+    assert "کارگاه داستان‌نویسی | ۲۰۰ هزار تومان | ۴۰۰ هزار تومان" in doc.text
     assert f"می{ZWNJ}کند" in doc.text  # &zwnj; entity kept
     assert "- کارگاه سواد اطلاعاتی" in doc.text
     for junk in ("قبول", "کوکی", "©", "پربازدیدترین", "analytics", "› رویدادها", "عضویت"):
@@ -202,7 +202,7 @@ def test_load_docx_keeps_structure() -> None:
     doc = load_document(DOCS / "kahroba-installation-guide.docx")
     assert doc.title == "راهنمای نصب کولر گازی کهربا"
     assert "## هزینهٔ نصب" in doc.text and "### زمان مراجعهٔ نصاب" in doc.text
-    assert "۱۸ هزار | ۱٫۲ میلیون تومان" in doc.text
+    assert "۱۸ هزار | ۵٫۲ میلیون تومان" in doc.text
     assert "- نصاب معمولاً ظرف ۳ روز کاری مراجعه می‌کند." in doc.text
     assert "‏" not in doc.text and "KX-2400" in doc.text
     hit = doc.text.index("فیوز")
@@ -228,11 +228,11 @@ def test_load_pdf_fixes_visual_order() -> None:
     pytest.importorskip("pypdf")
     from parsrag.loaders import load_pdf
 
-    raw = load_pdf(DOCS / "sepidar-newsletter.pdf", repair=False)
+    raw = load_pdf(DOCS / "mehregan-newsletter.pdf", repair=False)
     assert looks_visual_order(raw.text)
-    doc = load_pdf(DOCS / "sepidar-newsletter.pdf")
+    doc = load_pdf(DOCS / "mehregan-newsletter.pdf")
     assert doc.metadata["pages"][0]["visual_order"] is True
-    assert doc.text == _source("sepidar-newsletter.txt")
+    assert doc.text == _source("mehregan-newsletter.txt")
 
 
 def test_committed_fixtures_are_reproducible() -> None:

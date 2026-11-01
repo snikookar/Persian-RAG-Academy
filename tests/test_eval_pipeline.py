@@ -20,7 +20,7 @@ BASELINE = Path(__file__).resolve().parents[1] / "docs" / "eval" / "baseline.jso
 
 def tiny_generator() -> GroundedGenerator:
     chunks = [
-        Chunk(id="ship#0", doc_id="ship", text="هزینهٔ پیک در تهران 45 هزار تومان است."),
+        Chunk(id="ship#0", doc_id="ship", text="هزینهٔ پیک در تهران 200 هزار تومان است."),
         Chunk(id="lib#0", doc_id="lib", text="کتابخانه تا ۸ شب باز است."),
     ]
     bm25 = BM25Retriever(chunks)
@@ -29,8 +29,8 @@ def tiny_generator() -> GroundedGenerator:
 
 def tiny_qa() -> list[QAItem]:
     return [
-        QAItem(id="a", question="هزینهٔ پیک در تهران چقدر است؟", answer="۴۵ هزار تومان",
-               doc_id="ship", evidence="پیک در تهران 45 هزار"),
+        QAItem(id="a", question="هزینهٔ پیک در تهران چقدر است؟", answer="۲۰۰ هزار تومان",
+               doc_id="ship", evidence="پیک در تهران 200 هزار"),
         QAItem(id="b", question="کتابخانه تا کی باز است؟", answer="تا ۸ شب",
                doc_id="lib", evidence="تا ۸ شب باز"),
         QAItem(id="c", question="پارکینگ دارد؟", answer="-"),

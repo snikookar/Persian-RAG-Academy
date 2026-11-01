@@ -49,12 +49,12 @@ def test_fake_llm_handler_wins() -> None:
 
 def test_fake_llm_extractive_picks_best_sentence() -> None:
     prompt = (
-        "کتابخانه جمعه‌ها تعطیل است. هزینهٔ پیک در تهران ۴۵ هزار تومان است.\n\n"
+        "کتابخانه جمعه‌ها تعطیل است. هزینهٔ پیک در تهران ۲۰۰ هزار تومان است.\n\n"
         "پرسش: هزینهٔ پیک چقدر است؟"
     )
     llm = FakeLLM(mode="extractive")
     assert llm.generate([{"role": "user", "content": prompt}]) == (
-        "هزینهٔ پیک در تهران ۴۵ هزار تومان است."
+        "هزینهٔ پیک در تهران ۲۰۰ هزار تومان است."
     )
 
 
@@ -165,7 +165,7 @@ def test_package_import_does_not_pull_optional_deps() -> None:
 
 def test_fake_llm_extractive_cites_numbered_blocks() -> None:
     prompt = (
-        "متن‌ها:\n[1] shop › ارسال\nهزینهٔ پیک ۴۵ هزار تومان است.\n\n"
+        "متن‌ها:\n[1] shop › ارسال\nهزینهٔ پیک ۲۰۰ هزار تومان است.\n\n"
         "[2] library\nکتابخانه تا ۸ شب باز است.\n\nپرسش: کتابخانه تا کی باز است؟"
     )
     cited = FakeLLM(mode="extractive", cite=True)

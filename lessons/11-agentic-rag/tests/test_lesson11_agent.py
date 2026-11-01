@@ -146,7 +146,7 @@ def test_grade_node(ag: ModuleType, rag: PersianRAG) -> None:
     update = agent.grade(state)
     assert agent.llm.calls == calls + 1 and update["trace"] == ["grade"]
     assert 1 <= len(update["relevant"]) <= rag.k
-    assert "45" in update["relevant"][0]["chunk"]["text"]
+    assert "200" in update["relevant"][0]["chunk"]["text"]
     state["query"] = NO_ANSWER
     assert agent.grade(state)["relevant"] == [] and agent.llm.calls == calls + 1
 
@@ -163,7 +163,7 @@ def test_run_simple_question(ag: ModuleType, rag: PersianRAG) -> None:
     result = ag.AgenticRAG(rag).run(PIK)
     assert result.trace == ["analyze", "retrieve", "rerank", "grade", "generate", "check", "finish"]
     assert result.llm_calls == 4 and result.attempts == 1
-    assert not result.answer.abstained and "45" in result.answer.text and result.answer.citations
+    assert not result.answer.abstained and "200" in result.answer.text and result.answer.citations
 
 
 @hint(
@@ -175,7 +175,7 @@ def test_run_colloquial_and_multi_part(ag: ModuleType, rag: PersianRAG) -> None:
     agent = ag.AgenticRAG(rag)
     r = agent.run("هزینهٔ پیک تو تهران چقدره؟")
     assert r.query == "هزینهٔ پیک در تهران چقدر است؟" and not r.answer.abstained
-    multi = agent.run("هزینهٔ پیک در تهران چقدر است و ساعت کاری کتابخانهٔ سپیدار چیست؟")
+    multi = agent.run("هزینهٔ پیک در تهران چقدر است و ساعت کاری کتابخانهٔ مهرگان چیست؟")
     assert len(multi.sub_questions) == 2 and multi.llm_calls == 5
     assert len(multi.answer.answer.splitlines()) == 2
 
@@ -237,7 +237,7 @@ def test_graph_human_in_the_loop(ag: ModuleType, rag: PersianRAG) -> None:
     config = {"configurable": {"thread_id": "lesson11"}}
     paused = ag.run_graph(agent, graph, PIK, config)
     assert "__interrupt__" in paused
-    fixed = "هزینهٔ پیک در تهران 45 هزار تومان است [1]."
+    fixed = "هزینهٔ پیک در تهران 200 هزار تومان است [1]."
     final = graph.invoke(Command(resume={"action": "edit", "answer": fixed}), config)
     assert not final["answer"]["abstained"] and final["answer"]["citations"]
 
@@ -259,7 +259,7 @@ def test_your_agent_reproduces_the_lesson_numbers(ag: ModuleType, rag: PersianRA
     para = evaluate_pipeline(
         agent, load_fixture_benchmark(qa_file="qa_paraphrase.jsonl")[1], n_resamples=10
     )
-    assert original.metrics["answer_f1"] == pytest.approx(0.314, abs=1e-3)
+    assert original.metrics["answer_f1"] == pytest.approx(0.301, abs=1e-3)
     assert original.metrics["abstention_f1"] == pytest.approx(0.714, abs=1e-3)
     assert para.metrics["retrieval_r@1"] == pytest.approx(0.478, abs=1e-3)
     assert para.metrics["answered_rate"] == pytest.approx(0.348, abs=1e-3)

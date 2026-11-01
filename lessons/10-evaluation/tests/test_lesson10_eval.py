@@ -25,7 +25,7 @@ hint = pytest.mark.hint
 )
 def test_answer_tokens(gm: ModuleType) -> None:
     """answer_tokens makes Persian answers comparable"""
-    assert gm.answer_tokens("۴۵ هزار تومان است [1].") == ["45", "هزار", "تومان"]
+    assert gm.answer_tokens("۲۰۰ هزار تومان است [1].") == ["200", "هزار", "تومان"]
     assert gm.answer_tokens("۱۰٬۴۲۰ عضو") == ["10420", "عضو"]
     assert (
         gm.answer_tokens("نمي‌شود") == gm.answer_tokens("نمی شود") == ["نمی"]
@@ -40,8 +40,8 @@ def test_answer_tokens(gm: ModuleType) -> None:
 @pytest.mark.parametrize(
     ("pred", "ref", "f1"),
     [
-        ("۴۵ هزار تومان.", "45 هزار تومان", 1.0),
-        ("هزینهٔ پیک 45 هزار تومان است [1].", "۴۵ هزار تومان.", 2 * 0.6 * 1.0 / 1.6),
+        ("۲۰۰ هزار تومان.", "200 هزار تومان", 1.0),
+        ("هزینهٔ پیک 200 هزار تومان است [1].", "۲۰۰ هزار تومان.", 2 * 0.6 * 1.0 / 1.6),
         ("اصفهان", "تهران", 0.0),
         ("", "تهران", 0.0),
     ],
@@ -55,7 +55,9 @@ def test_token_f1(gm: ModuleType, pred: str, ref: str, f1: float) -> None:
 
 
 def _item() -> QAItem:
-    return QAItem(id="q", question="؟", answer="45", doc_id="ship", evidence="پیک در تهران 45 هزار")
+    return QAItem(
+        id="q", question="؟", answer="200", doc_id="ship", evidence="پیک در تهران 200 هزار"
+    )
 
 
 @hint(
@@ -64,7 +66,7 @@ def _item() -> QAItem:
 )
 def test_citation_precision(gm: ModuleType) -> None:
     """citation precision = cited chunks that really contain the evidence"""
-    good = Chunk(id="a", doc_id="ship", text="هزینهٔ پیک در تهران ۴۵ هزار تومان است.")
+    good = Chunk(id="a", doc_id="ship", text="هزینهٔ پیک در تهران ۲۰۰ هزار تومان است.")
     bad = Chunk(id="b", doc_id="faq", text="ساعت کاری")
     assert gm.citation_precision([good, bad], _item()) == 0.5
     assert gm.citation_precision([], _item()) is None
@@ -81,8 +83,8 @@ def test_citation_precision(gm: ModuleType) -> None:
 )
 def test_split_claims(gm: ModuleType) -> None:
     """split_claims cuts an answer into sentences"""
-    assert gm.split_claims("هزینه ۴۵ هزار است [1]. ارسال رایگان است؟ [2]\nبله.") == [
-        "هزینه ۴۵ هزار است .",
+    assert gm.split_claims("هزینه ۲۰۰ هزار است [1]. ارسال رایگان است؟ [2]\nبله.") == [
+        "هزینه ۲۰۰ هزار است .",
         "ارسال رایگان است؟",
         "بله.",
     ]
@@ -95,13 +97,13 @@ def test_split_claims(gm: ModuleType) -> None:
 )
 def test_check_claim_and_faithfulness(gm: ModuleType) -> None:
     """faithfulness counts claims supported by one retrieved chunk, numbers included"""
-    ctx = ["هزینهٔ پیک در تهران 45 هزار تومان است.", "ارسال به شهرستان‌ها با پست پیشتاز است."]
-    ok = gm.check_claim("هزینهٔ پیک در تهران ۴۵ هزار تومان است.", ctx)
+    ctx = ["هزینهٔ پیک در تهران 200 هزار تومان است.", "ارسال به شهرستان‌ها با پست پیشتاز است."]
+    ok = gm.check_claim("هزینهٔ پیک در تهران ۲۰۰ هزار تومان است.", ctx)
     assert ok.supported and ok.numbers_ok and ok.support == 1.0
-    wrong_number = gm.check_claim("هزینهٔ پیک در تهران 50 هزار تومان است.", ctx)
+    wrong_number = gm.check_claim("هزینهٔ پیک در تهران 250 هزار تومان است.", ctx)
     assert not wrong_number.supported and not wrong_number.numbers_ok
     result = gm.faithfulness(
-        "هزینهٔ پیک 45 هزار تومان است [1]. ارسال با هواپیما در یک ساعت است.", ctx
+        "هزینهٔ پیک 200 هزار تومان است [1]. ارسال با هواپیما در یک ساعت است.", ctx
     )
     assert result.score == 0.5 and [c.supported for c in result.claims] == [True, False]
     assert gm.faithfulness("", ctx).score == 1.0
@@ -120,11 +122,11 @@ def test_llm_judge(gm: ModuleType) -> None:
         return "امتیاز: ۸\nدلیل: یک ادعا در متن نیست."
 
     judge = gm.LLMJudge(FakeLLM(handler=handler))
-    r = judge.faithfulness("هزینهٔ پیک؟", "۴۵ هزار تومان", ["پیک ۴۵ هزار تومان"])
+    r = judge.faithfulness("هزینهٔ پیک؟", "۲۰۰ هزار تومان", ["پیک ۲۰۰ هزار تومان"])
     assert r.score == pytest.approx(0.8) and r.reason == "یک ادعا در متن نیست."
-    assert seen[0][0].role == "system" and "[1] پیک ۴۵ هزار تومان" in seen[0][1].content
-    c = judge.correctness("هزینهٔ پیک؟", "۴۵ هزار", "45 هزار تومان")
-    assert c.score == pytest.approx(0.8) and "پاسخ مرجع: 45 هزار تومان" in seen[1][1].content
+    assert seen[0][0].role == "system" and "[1] پیک ۲۰۰ هزار تومان" in seen[0][1].content
+    c = judge.correctness("هزینهٔ پیک؟", "۲۰۰ هزار", "200 هزار تومان")
+    assert c.score == pytest.approx(0.8) and "پاسخ مرجع: 200 هزار تومان" in seen[1][1].content
     assert gm.LLMJudge(FakeLLM(["خوب بود"])).faithfulness("?", "x", []).score is None
 
 

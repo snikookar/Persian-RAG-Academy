@@ -92,9 +92,9 @@ flowchart TB
 | ![Normalisation impact](docs/images/readme_normalization.png) | ![PDF repair](docs/images/readme_pdf_repair.png) |
 | **Normalisation (02).** Unifying Arabic/Persian letters is the step that matters: without it hit@1 stays at the raw-text level (0.81 → 0.90 with it). | **PDF repair (03).** NFKC fixes logical-order PDFs (0.07 → 0.94 word recall) but not visual-order ones (0.08); order repair and ZWNJ recovery bring both to 1.00. |
 | ![Chunking strategies](docs/images/readme_chunking.png) | ![Hybrid search](docs/images/readme_hybrid.png) |
-| **Chunking (04).** Structure-aware chunks with the heading prepended beat fixed windows at every size (MRR 0.67 → 0.83 at 200 characters). | **Hybrid search (07).** RRF over BM25 and dense is the best on the original questions (MRR 0.93). Paraphrases halve every lexical method — the gap only a real model closes. |
+| **Chunking (04).** Structure-aware chunks with the heading prepended beat fixed windows at every size (MRR 0.66 → 0.82 at 200 characters). | **Hybrid search (07).** RRF over BM25 and dense is the best untuned method on the original questions (MRR 0.93). Paraphrases halve every lexical method — the gap only a real model closes. |
 | ![Reranking](docs/images/readme_rerank.png) | ![Agent vs pipeline](docs/images/readme_agent.png) |
-| **Reranking (08).** Reranking 20 candidates lifts R@1 0.88 → 0.90 (original) and 0.35 → 0.37 (paraphrase); lesson 10's paired bootstrap shows the interval contains 0. | **Agent vs pipeline (11).** The agent answers more paraphrases (0.22 → 0.35) at ~4× the LLM calls; on the original set its answer-F1 gain (+0.025) is not significant. |
+| **Reranking (08).** Reranking 20 candidates lifts R@1 0.86 → 0.88 (original) and 0.33 → 0.37 (paraphrase); lesson 10's paired bootstrap shows the interval contains 0. | **Agent vs pipeline (11).** The agent answers more paraphrases (0.22 → 0.35) at ~4× the LLM calls; on the original set its answer-F1 gain (+0.025) is not significant. |
 
 The end-to-end pipeline is gated in CI against [`docs/eval/baseline.json`](docs/eval/baseline.json)
 (`python -m parsrag.eval gate`); the full report is in [`docs/eval/report.md`](docs/eval/report.md).
@@ -130,7 +130,7 @@ from parsrag import PersianRAG
 rag = PersianRAG()                                   # the course defaults, fully offline
 rag.add_documents(["data/fixtures/corpus"])          # folders, files or Document objects
 answer = rag.ask("هزینهٔ پیک در تهران چقدر است؟")
-print(answer.text)                                   # هزینهٔ پیک در تهران 45 هزار تومان است.
+print(answer.text)                                   # هزینهٔ پیک در تهران 200 هزار تومان است.
 for c in answer.citations:
     print(c.doc_id, c.section)                       # kahroba-shipping شیوه‌های ارسال سفارش
 print(rag.ask("پایتخت فرانسه کجاست؟").text)          # نمی‌دانم
@@ -201,7 +201,7 @@ a vector. It is deterministic and dependency-free, which is what tests and CI ne
 explains when to replace it.
 
 **Where does the sample data come from?** Every document and question in `data/fixtures/` was
-written for this repository (a fictional shop «کهربا» and library «سپیدار»); no copyrighted text.
+written for this repository (a fictional shop «کهربا» and library «مهرگان»); no copyrighted text.
 
 ## Contributing
 
@@ -213,7 +213,9 @@ see [SECURITY.md](SECURITY.md).
 ## License
 
 [MIT](LICENSE). All Persian sample data in `data/fixtures/` was written originally for this
-repository and is covered by the same license.
+repository and is covered by the same license. The web UI bundles the Vazirmatn font
+(© The Vazirmatn Project Authors), licensed under the
+[SIL Open Font License 1.1](src/parsrag/api/static/fonts/OFL.txt).
 
 ## Cite this project
 

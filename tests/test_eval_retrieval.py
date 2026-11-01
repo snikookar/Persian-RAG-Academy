@@ -48,10 +48,10 @@ def _r(doc: str, text: str, i: int = 0) -> SearchResult:
 
 
 def test_contains_evidence_uses_window_and_doc() -> None:
-    item = QAItem(id="q", question="?", answer="", doc_id="A", evidence="هزینهٔ پیک 45 هزار")
-    assert contains_evidence(_r("A", "هزينهٔ پيک ۴۵ هزار تومان").chunk, item)
-    assert not contains_evidence(_r("B", "هزینهٔ پیک 45 هزار").chunk, item)
-    windowed = Chunk(id="A#1", doc_id="A", text="پیک", metadata={"window": "هزینهٔ پیک 45 هزار"})
+    item = QAItem(id="q", question="?", answer="", doc_id="A", evidence="هزینهٔ پیک 200 هزار")
+    assert contains_evidence(_r("A", "هزينهٔ پيک ۲۰۰ هزار تومان").chunk, item)
+    assert not contains_evidence(_r("B", "هزینهٔ پیک 200 هزار").chunk, item)
+    windowed = Chunk(id="A#1", doc_id="A", text="پیک", metadata={"window": "هزینهٔ پیک 200 هزار"})
     assert contains_evidence(windowed, item)
 
 

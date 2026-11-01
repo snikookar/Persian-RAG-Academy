@@ -25,7 +25,7 @@ CHUNKS = [
     ),
     Chunk(
         id="lib",
-        doc_id="sepidar-hours",
+        doc_id="mehregan-hours",
         text="ساعت کاری کتابخانهٔ عمومی",
         metadata={"page": 1, "section": "ساعت"},
     ),
@@ -37,7 +37,7 @@ CHUNKS = [
     ),
     Chunk(
         id="lib2",
-        doc_id="sepidar-rules",
+        doc_id="mehregan-rules",
         text="قوانین امانت کتاب در کتابخانه",
         metadata={"page": 3, "section": "امانت"},
     ),
@@ -102,7 +102,7 @@ def test_memory_search(vs: ModuleType, memory) -> None:  # type: ignore[no-untyp
 def test_memory_filters(memory) -> None:  # type: ignore[no-untyped-def]
     """InMemoryVectorStore.search applies metadata filters before ranking"""
     assert [
-        r.chunk.id for r in memory.search("کتابخانه", k=4, filter={"doc_id": "sepidar-rules"})
+        r.chunk.id for r in memory.search("کتابخانه", k=4, filter={"doc_id": "mehregan-rules"})
     ] == ["lib2"]
     assert {
         r.chunk.id for r in memory.search("کتابخانه", k=4, filter=lambda c: c.metadata["page"] >= 2)

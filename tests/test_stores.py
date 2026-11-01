@@ -15,9 +15,9 @@ from parsrag.stores.pgvector_store import filter_to_sql
 DB_URL = os.environ.get("PARSRAG_TEST_DATABASE_URL")
 TEXTS = {
     "ship": ("kahroba-shipping", "ارسال سفارش با پیک در تهران", {"page": 1, "section": "ارسال"}),
-    "lib": ("sepidar-hours", "ساعت کاری کتابخانهٔ عمومی", {"page": 1, "section": "ساعت"}),
+    "lib": ("mehregan-hours", "ساعت کاری کتابخانهٔ عمومی", {"page": 1, "section": "ساعت"}),
     "pay": ("kahroba-payment", "پرداخت اقساطی و درگاه بانکی", {"page": 2, "section": "پرداخت"}),
-    "lib2": ("sepidar-rules", "قوانین امانت کتاب در کتابخانه", {"page": 3, "section": "امانت"}),
+    "lib2": ("mehregan-rules", "قوانین امانت کتاب در کتابخانه", {"page": 3, "section": "امانت"}),
 }
 
 
@@ -77,7 +77,7 @@ def test_store_protocol_and_search(store) -> None:  # type: ignore[no-untyped-de
 
 
 def test_store_filters(store) -> None:  # type: ignore[no-untyped-def]
-    only = store.search("کتابخانه", k=4, filter={"doc_id": "sepidar-rules"})
+    only = store.search("کتابخانه", k=4, filter={"doc_id": "mehregan-rules"})
     assert [r.chunk.id for r in only] == ["lib2"]
     pages = store.search("کتابخانه", k=4, filter=lambda c: c.metadata["page"] >= 2)
     assert {r.chunk.id for r in pages} == {"pay", "lib2"}
@@ -189,7 +189,7 @@ def test_pgvector_round_trip() -> None:
         store.add(_chunks())
         assert len(store) == 4
         assert store.search("ساعت کاری کتابخانه", k=1)[0].chunk.id == "lib"
-        only = store.search("کتابخانه", k=4, filter={"doc_id": "sepidar-rules"})
+        only = store.search("کتابخانه", k=4, filter={"doc_id": "mehregan-rules"})
         assert [r.chunk.id for r in only] == ["lib2"]
         pages = store.search("کتابخانه", k=4, filter={"section": ["ارسال", "پرداخت"]})
         assert {r.chunk.id for r in pages} == {"ship", "pay"}

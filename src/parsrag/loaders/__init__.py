@@ -1,7 +1,7 @@
 """Loading Persian documents from files (lesson 03).
 
 >>> from parsrag.loaders import load_document, load_directory
->>> doc = load_document("data/fixtures/documents/sepidar-newsletter.pdf")
+>>> doc = load_document("data/fixtures/documents/mehregan-newsletter.pdf")
 >>> doc.metadata["pages"][0]["visual_order"]   # it was stored backwards — and fixed
 True
 

@@ -30,7 +30,7 @@ def _results() -> list[SearchResult]:
             chunk=Chunk(
                 id="ship#0",
                 doc_id="shipping",
-                text="هزینهٔ پیک در تهران ۴۵ هزار تومان است.",
+                text="هزینهٔ پیک در تهران ۲۰۰ هزار تومان است.",
                 metadata=META,
             ),
             score=12.0,
@@ -63,7 +63,7 @@ def test_block_header_and_context(gen: ModuleType) -> None:
     assert gen.block_header(2, res[1].chunk) == "[2] faq"
     ctx = gen.build_context(res)
     assert ctx == (
-        "[1] shipping › شیوه‌های ارسال (صفحهٔ 2)\nهزینهٔ پیک در تهران ۴۵ هزار تومان است."
+        "[1] shipping › شیوه‌های ارسال (صفحهٔ 2)\nهزینهٔ پیک در تهران ۲۰۰ هزار تومان است."
         "\n\n[2] faq\nپشتیبانی تا ۹ شب پاسخ می‌دهد."
     )
     windowed = Chunk(
@@ -95,7 +95,7 @@ def test_build_messages(gen: ModuleType) -> None:
 @pytest.mark.parametrize(
     ("text", "cited"),
     [
-        ("۴۵ هزار تومان است [1].", [1]),
+        ("۲۰۰ هزار تومان است [1].", [1]),
         ("طبق [۲] و [1]، بله [2].", [2, 1]),
         ("بله [1، 3]", [1, 3]),
         ("بله [2,4]", [2, 4]),
@@ -119,7 +119,7 @@ def test_parse_citations(gen: ModuleType, text: str, cited: list[int]) -> None:
         ("نمیدانم.", True),
         ("متأسفم، نمي دانم.", True),
         ("این اطلاعات در متن‌ها نیست.", True),
-        ("۴۵ هزار تومان [1]", False),
+        ("۲۰۰ هزار تومان [1]", False),
     ],
 )
 def test_is_refusal(gen: ModuleType, text: str, refusal: bool) -> None:
@@ -178,12 +178,12 @@ def test_generator_abstains_on_low_score(gen: ModuleType) -> None:
 )
 def test_generator_answers_with_citations(gen: ModuleType) -> None:
     """answers keep valid citations and report invalid ones"""
-    g = gen.GroundedGenerator(Fixed(_results()), FakeLLM(["۴۵ هزار تومان [1] [5]"]))
+    g = gen.GroundedGenerator(Fixed(_results()), FakeLLM(["۲۰۰ هزار تومان [1] [5]"]))
     a = g.answer("هزینهٔ پیک؟")
-    assert not a.abstained and a.answer == "۴۵ هزار تومان [1] [5]"
+    assert not a.abstained and a.answer == "۲۰۰ هزار تومان [1] [5]"
     assert [c.chunk_id for c in a.citations] == ["ship#0"]
     assert a.invalid_citations == [5] and not a.uncited
-    assert a.text == "۴۵ هزار تومان"
+    assert a.text == "۲۰۰ هزار تومان"
     refused = gen.GroundedGenerator(Fixed(_results()), FakeLLM(["نمی‌دانم."])).answer("؟")
     assert refused.abstained and refused.abstain_reason == "model"
     extractive = FakeLLM(mode="extractive", cite=True)

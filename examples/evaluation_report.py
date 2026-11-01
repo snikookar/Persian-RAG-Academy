@@ -102,11 +102,11 @@ def verbosity_bias_demo() -> None:
         return f"امتیاز: {min(10, len(answer) // 15)}\nدلیل: پاسخ کامل و مفصل است."
 
     judge = LLMJudge(FakeLLM(handler=length_loving_judge))
-    context = ["هزینهٔ پیک در تهران 45 هزار تومان است."]
+    context = ["هزینهٔ پیک در تهران 200 هزار تومان است."]
     answers = {
-        "short, correct": "45 هزار تومان.",
+        "short, correct": "200 هزار تومان.",
         "long, padded with an unsupported claim": (
-            "هزینهٔ پیک در تهران 45 هزار تومان است. ارسال با پیک در تمام شهرهای ایران "
+            "هزینهٔ پیک در تهران 200 هزار تومان است. ارسال با پیک در تمام شهرهای ایران "
             "در کمتر از دو ساعت انجام می‌شود."
         ),
     }

@@ -20,7 +20,7 @@ PIK = "هزینهٔ پیک در تهران چقدر است؟"
 SHOP = Document(
     id="shop",
     title="راهنمای فروشگاه",
-    text="هزينهٔ پيک در تهران ۴۵ هزار تومان است.\n\nکالا را تا ۷ روز پس از تحویل می‌توانید مرجوع کنید.",
+    text="هزينهٔ پيک در تهران ۲۰۰ هزار تومان است.\n\nکالا را تا ۷ روز پس از تحویل می‌توانید مرجوع کنید.",
 )
 LIB = Document(id="lib", text="کتابخانه از ساعت ۸ صبح تا ۸ شب باز است.")
 EXAMPLE = LESSONS / "13-capstone" / "my_questions.example.jsonl"
@@ -108,7 +108,7 @@ def test_ask_with_citations_and_timings(rg: ModuleType, course: Any) -> None:
     """ask returns a cited answer and per-stage timings"""
     timings = rg.Timings()
     answer = course.ask(PIK, timings=timings)
-    assert not answer.abstained and "45" in answer.text
+    assert not answer.abstained and "200" in answer.text
     assert answer.citations[0].doc_id == "kahroba-shipping"
     assert timings.llm_calls == 1 and timings.total_ms >= timings.retrieve_ms > 0
     with pytest.raises(rg.EmptyIndexError):
@@ -169,7 +169,7 @@ def test_validate_qa(rg: ModuleType) -> None:
     """mistakes in a hand-written question file are reported"""
     items = [
         QAItem(
-            id="1", question="پیک؟", answer="۴۵", doc_id="shop", evidence="هزینهٔ پیک در تهران 45"
+            id="1", question="پیک؟", answer="۲۰۰", doc_id="shop", evidence="هزینهٔ پیک در تهران 200"
         ),
         QAItem(id="2", question="؟", answer="-", doc_id="shop"),
         QAItem(id="2", question=" ", answer="-", doc_id=None, evidence="x"),
@@ -217,5 +217,5 @@ def test_save_load_and_serve(rg: ModuleType, course: Any, tmp_path: Path) -> Non
 
     client = TestClient(create_app(loaded, Settings(rate_limit=0)))
     data = client.post("/ask", json={"question": PIK}).json()
-    assert "45" in data["text"] and "هزینهٔ پیک در تهران" in data["citations"][0]["passage"]
+    assert "200" in data["text"] and "هزینهٔ پیک در تهران" in data["citations"][0]["passage"]
     assert 'dir="rtl"' in client.get("/").text

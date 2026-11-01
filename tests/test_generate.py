@@ -19,14 +19,14 @@ from parsrag.types import Chunk, SearchResult
 
 def chunks() -> list[Chunk]:
     return [
-        Chunk(id="a#0", doc_id="a", text="هزینهٔ پیک در تهران ۴۵ هزار تومان است.",
+        Chunk(id="a#0", doc_id="a", text="هزینهٔ پیک در تهران ۲۰۰ هزار تومان است.",
               metadata={"section": "ارسال", "start": 0, "end": 40}),
         Chunk(id="b#0", doc_id="b", text="کتابخانه تا ۸ شب باز است."),
     ]  # fmt: skip
 
 
 def test_strip_citations_and_top_score() -> None:
-    assert strip_citations("۴۵ هزار تومان [1] است [۲، 3].") == "۴۵ هزار تومان است ."
+    assert strip_citations("۲۰۰ هزار تومان [1] است [۲، 3].") == "۲۰۰ هزار تومان است ."
     assert top_score("q", []) == float("-inf")
     assert top_score("q", [SearchResult(chunk=chunks()[0], score=2.5)]) == 2.5
 
@@ -62,7 +62,7 @@ class FakeClient:
             def raise_for_status(self) -> None: ...
 
             def json(self) -> Any:
-                return {"choices": [{"message": {"content": "۴۵ هزار تومان [1]"}}]}
+                return {"choices": [{"message": {"content": "۲۰۰ هزار تومان [1]"}}]}
 
         return Response()
 
@@ -71,6 +71,6 @@ def test_openai_compatible_model_plugs_in() -> None:
     client = FakeClient()
     llm = OpenAICompatibleLLM("any-model", base_url="http://localhost:11434/v1", client=client)
     ans = GroundedGenerator(BM25Retriever(chunks()), llm).answer("هزینهٔ پیک چقدر است؟")
-    assert ans.citations[0].doc_id == "a" and ans.text == "۴۵ هزار تومان"
+    assert ans.citations[0].doc_id == "a" and ans.text == "۲۰۰ هزار تومان"
     system, user = client.payloads[0]["messages"]
     assert "نمی‌دانم" in system["content"] and user["content"].startswith("متن‌ها:\n[1] a")
