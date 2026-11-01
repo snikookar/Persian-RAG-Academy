@@ -152,6 +152,13 @@ python -m grader run 08          # ۲۱ بررسی
 - [مستندات CrossEncoder در sentence-transformers](https://www.sbert.net/docs/cross_encoder/usage/usage.html) و کارت مدل [bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3).
 - Sun et al.، *Is ChatGPT Good at Search? Investigating LLMs as Re-Ranking Agents* (2023) — بازرتبه‌بندی فهرستی با LLM.
 
+## چالش‌ها (اختیاری)
+
+تمرین‌هایی باز، بدون پاسخ مرجع و بدون بررسی Grader، برای وقتی که می‌خواهید جلوتر بروید:
+
+1. **رمزگذار متقاطع واقعی.** یک رمزگذار متقاطع چندزبانه را با `--cross-encoder` امتحان کنید و هم کیفیت و هم زمان هر پرسش را گزارش کنید. ارزشش را دارد؟
+2. **بازرتبه‌بندی فهرستی.** به‌جای امتیاز دادن به هر نامزد جداگانه، از LLM بخواهید کل فهرست را مرتب کند. هزینه (تعداد فراخوانی و توکن) را با `LLMReranker` نقطه‌ای مقایسه کنید.
+
 ## درس بعد
 
 [درس ۰۹ — تولید مستند](../09-grounded-generation/README.fa.md): پاسخ با ارجاع به منبع، و شجاعت گفتن «نمی‌دانم».
