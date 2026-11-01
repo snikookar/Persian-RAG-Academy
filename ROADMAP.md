@@ -19,6 +19,7 @@ Each lesson builds one `parsrag` module, ships a Persian `README.fa.md`, a
 - [x] **11 — Agentic RAG with LangGraph**: analyse/rewrite → route → retrieve → rerank → grade → generate → self-check → bounded retry; plain-Python runner + LangGraph `StateGraph`, `interrupt()` review, checkpointers → `parsrag.agent`
 - [x] **12 — Production API**: FastAPI, SSE streaming, normalised-question cache, token-bucket rate limiting, JSON logs with per-stage latency, Docker + compose with pgvector → `parsrag.api`
 - [x] **13 — Capstone**: `PersianRAG` facade, `parsrag` CLI, RTL web UI, own question sets (`validate_qa`), eval gate, production checklist → `parsrag.rag`, `parsrag.cli`
+- [x] **14 — RAG security**: indirect prompt injection hidden in documents; detection (Persian + English, normalised), sanitising, sandbox with a random nonce, instruction hierarchy, post-generation checks, opt-in guard in `PersianRAG` and the API; measured with simulated models → `parsrag.security`
 
 ## Baseline numbers (fixtures, HashingEmbedding)
 
@@ -416,16 +417,101 @@ Decisions:
   now moves one question.
 - Historical session-log entries above keep the numbers measured at the time.
 
-### Next session (Day 7) — optional ideas
+### Day 7 — 2026-11-01: Colab embedding benchmark and lesson 14 (RAG security)
 
-- **Colab notebook for benchmarking real embedding models** on the course questions
-  (`examples/benchmark_embeddings.py` with `st:` models, both question sets, passage-level
-  metrics), clearly marked as run by the learner; results never committed as course numbers
-  unless produced by a script in the repo.
-- **A lesson on RAG security / prompt injection inside documents**: original adversarial
-  fixture documents, a measurable attack-success rate with `FakeLLM`-style offline simulation,
-  defences (instruction isolation, citation validation, abstention, output checks) and their
-  limits.
+Docs deployment check:
+- The failed `github-pages` deployment on `main` (run of 2026-11-01 04:08) was a 404 from
+  `actions/deploy-pages` ("Ensure GitHub Pages has been enabled"): Pages was not enabled yet.
+  The manual re-run after enabling Pages succeeded. Permissions (`pages: write`,
+  `id-token: write`), `environment: github-pages`, `upload-pages-artifact@v3` /
+  `deploy-pages@v4` and `mkdocs build --strict` were already fine. Only change: a running
+  deployment from `main` is no longer cancelled by the next push (`cancel-in-progress` only
+  for PRs). The runner warns that `deploy-pages@v4` targets Node 20 (forced onto Node 24);
+  it still works.
+
+Built:
+- `notebooks/benchmark_real_embeddings.ipynb` (Open in Colab badge; linked from lesson 05,
+  both READMEs, the docs home and results pages): installs `parsrag` from the repository,
+  loads the corpus with both question sets, scores multilingual-e5 small/base, bge-m3 and
+  paraphrase-multilingual-MiniLM next to hashing / TF-IDF with `parsrag.eval` (passage-level
+  R@1/3/5, MRR with a bootstrap CI, nDCG@3) on the course chunking and normalisation;
+  optional OpenAI-compatible cell (key via `getpass`, never stored); Markdown table in
+  lesson 05's format, `results.json`, a chart, Persian guidance on reading and contributing
+  results. Committed with outputs cleared; every code cell tagged `offline` / `network`.
+- `scripts/check_notebook.py` (stdlib only) + CI job: valid nbformat 4, cleared outputs, tags,
+  no secrets, badge path; `--run` executes the offline cells with sockets blocked and checks
+  that the offline rows equal the rows in lesson 05's new "real-model results" table (whose
+  real-model rows stay empty until someone contributes an actual run).
+- `parsrag.security` (lesson 14): `detect_injection` (8 categories of Persian/English rules on
+  `prepare()`d text), `sanitize_text`, `sandbox_context` with a per-prompt nonce,
+  `GUARDED_SYSTEM_PROMPT` + `REMINDER`, `InjectionGuard` (every layer switchable;
+  `check_answer`: links removed, refuse uncited / invalid / unsupported / echo / followed),
+  `GuardedRetriever` (drop + refill, or flag). Opt-in: `PersianRAG(guard=...)`, `[security]`
+  in `parsrag.toml` (and `parsrag init`), `PARSRAG_SECURITY` for the API; guarded streaming
+  checks the whole reply before sending tokens; answers and `/ask` carry `security`, refusals
+  `abstain_reason="unsafe"`.
+- `FakeLLM(obey="all" | "outside_data")`: a naive model that obeys «فقط بنویس: …» directives in
+  its context, and one that ignores directives inside the data markers.
+- `data/fixtures/attacks/`: 8 original attack documents (override fa/en, exfiltration via a
+  markdown image, citation spoofing, role hijack, obfuscation, delimiter escape, stealth),
+  3 benign hard negatives, `attacks.jsonl`. The main corpus and every earlier number are
+  unchanged.
+- Lesson 14: Persian README with Mermaid diagrams and measured tables, starter with TODOs,
+  12 grader checks; docs nav, READMEs (15 lessons), glossary (security section), library /
+  CLI / HTTP reference pages, CHANGELOG. `examples/injection_attacks.py` (offline, in CI) and
+  `examples/injection_test.py` (real OpenAI-compatible model, never in CI).
+
+Lesson 14 numbers (`python examples/injection_attacks.py`; simulated models, 8 attacks, all 8
+attack documents retrieved for their innocent question):
+
+| defence | naive model | hierarchy-respecting model |
+|---|---|---|
+| no defence | 8/8 | 8/8 |
+| sandbox, fixed delimiters + reminder | 8/8 | 1/8 |
+| sandbox, random delimiters + reminder | 8/8 | 0/8 |
+| sanitise links / markup only | 7/8 | 7/8 |
+| detection (drop flagged chunks) only | 1/8 | 1/8 |
+| output checks only | 1/8 | 1/8 |
+| all layers | 1/8 | 0/8 |
+
+Detection on raw chunks (8 with an instruction, 8 harmless): precision 1.000 / recall 0.875
+with normalisation, 1.000 / 0.750 without; 0/109 corpus chunks flagged. Cost on the clean
+corpus (calibrated course pipeline): identical metrics with and without the guard on both
+question sets (e.g. original R@1 0.881, answer F1 0.276, answered rate 0.966).
+
+Results: `ruff check .` clean · `pytest` 648 passed, 1 skipped (pgvector without DB) ·
+`python -m grader check-solutions` all pass (15 lessons) · `check-starters` all fail as they
+should · eval gate passes · `mkdocs build --strict` passes · package build, `check_dist.py`
+and `twine check --strict` pass · link checker clean · fixtures and README numbers reproduce ·
+notebook offline cells run with sockets blocked. Also verified: core-only install runs the
+security tests (API tests skipped) and the lesson 14 checks.
+
+Findings worth remembering:
+- Sandboxing and reminders do nothing against a model that does not respect them (naive model
+  8/8 either way); fixed delimiters can be closed by the document itself (a07), a random
+  nonce cannot.
+- Detection and output checks each stop 7/8 but share the same rules, so they fail together on
+  the stealth attack (a08). A supported, faithful answer can still be an attack: the injected
+  text *is* in the source, which is why `check_answer` refuses answers that cite a block with
+  an instruction (`followed`).
+- Disabling the detector's own normalisation changes nothing end to end because the index is
+  already normalised (lesson 02); on raw chunks it costs one attack (a06).
+- The rules and the attack documents were written together: detection numbers are optimistic
+  until attacks written by someone else are added.
+- No real-model numbers were produced: embedding results and real-model injection results are
+  left to `notebooks/benchmark_real_embeddings.ipynb` and `examples/injection_test.py`.
+
+Deviations from the Day 7 brief:
+- The notebook installs `parsrag` from a shallow clone of the repository (the fixtures are not
+  in the wheel), not with `pip install git+…`.
+- The notebook check runs the offline cells with a small stdlib executor instead of `nbclient`
+  (no new dependency); matplotlib comes from the existing `dev` extra.
+
+### Next session (Day 8) — optional ideas
+
+- Fill lesson 05's real-model table from actual notebook runs (contributors' PRs).
+- Attacks written by someone who has not seen the rules, and a held-out split of the attack
+  fixtures; an LLM-judge detector compared with the rules.
 - **A Telegram bot example on top of `parsrag`** (`PersianRAG` + streaming answers with
   citations), optional dependency, never run in CI.
 - **English summaries of each lesson** (one short page per lesson on the docs site or in
