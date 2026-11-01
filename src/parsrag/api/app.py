@@ -8,6 +8,7 @@
 ``POST /ask``             answer + citations (each with its source passage)
 ``POST /ask/stream``      the same, as Server-Sent Events: sources → token… → done
 ``GET  /``                the web UI of lesson 13
+``GET  /static/fonts/…``   the bundled Vazirmatn web fonts (SIL OFL 1.1) for the UI
 ========================= =====================================================
 
 Run it with ``parsrag serve`` or ``uvicorn parsrag.api.app:app``; the module
@@ -27,7 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, File, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from parsrag import __version__
@@ -39,6 +40,14 @@ from parsrag.generate import GroundedAnswer
 from parsrag.llm import split_for_streaming, stream_text
 from parsrag.rag import EmptyIndexError, PersianRAG, answer_payload
 from parsrag.types import Document
+
+# The web fonts shipped next to the UI, so it renders the same offline.
+FONT_FILES = {
+    "Vazirmatn-Regular.woff2": "font/woff2",
+    "Vazirmatn-Medium.woff2": "font/woff2",
+    "Vazirmatn-Bold.woff2": "font/woff2",
+    "OFL.txt": "text/plain; charset=utf-8",
+}
 
 # ------------------------------------------------------------------- models
 
@@ -463,6 +472,19 @@ def create_app(
     @app.get("/", response_class=HTMLResponse, include_in_schema=False)
     def ui() -> str:
         return resources.files("parsrag.api").joinpath("static/index.html").read_text("utf-8")
+
+    @app.get(
+        "/static/fonts/{name}", include_in_schema=False, responses={404: {"model": ErrorResponse}}
+    )
+    def font(name: str) -> Response:
+        if name not in FONT_FILES:  # a fixed allow-list: no path traversal possible
+            raise APIError(404, "not_found", f"no font {name!r}")
+        data = resources.files("parsrag.api").joinpath("static/fonts").joinpath(name).read_bytes()
+        return Response(
+            data,
+            media_type=FONT_FILES[name],
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        )
 
     log_event(
         service.logger,

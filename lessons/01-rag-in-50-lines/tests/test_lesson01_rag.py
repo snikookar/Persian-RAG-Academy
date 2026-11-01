@@ -142,7 +142,7 @@ def test_retrieve(pipeline) -> None:  # type: ignore[no-untyped-def]
 def test_answer(pipeline) -> None:  # type: ignore[no-untyped-def]
     """NaiveRAG.answer generates from retrieved context"""
     answer = pipeline.answer("هزینهٔ پیک در تهران چقدر است؟")
-    assert "45" in answer.text
+    assert "200" in answer.text
     assert answer.sources[0].chunk.doc_id == "kahroba-shipping"
     sent = pipeline.llm.calls[-1]
     assert sent[-1].content.rstrip().endswith("پرسش: هزینهٔ پیک در تهران چقدر است؟")

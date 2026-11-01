@@ -14,7 +14,7 @@ USER = [{"role": "user", "content": "سلام"}]
 
 
 def test_split_for_streaming_round_trips() -> None:
-    text = "هزینهٔ پیک  ۴۵ هزار تومان است [1].\nخط دوم"
+    text = "هزینهٔ پیک  ۲۰۰ هزار تومان است [1].\nخط دوم"
     pieces = split_for_streaming(text)
     assert "".join(pieces) == text
     assert len(pieces) == 9

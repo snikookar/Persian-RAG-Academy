@@ -28,11 +28,11 @@ def test_offline_embedding_table(fixtures) -> None:  # type: ignore[no-untyped-d
     docs, qa = fixtures
     assert len(docs) == 25 and sum(q.answerable for q in qa) == 59
     hashing = benchmark_embedding(HashingEmbedding(), docs, qa)
-    assert _rounded(hashing["passage"]) == (0.763, 0.983, 0.858)
+    assert _rounded(hashing["passage"]) == (0.729, 0.983, 0.841)
     word = benchmark_embedding(TfidfEmbedding("word"), docs, qa)
     assert _rounded(word["passage"]) == (0.729, 0.932, 0.836)
     char = benchmark_embedding(TfidfEmbedding("char"), docs, qa)
-    assert _rounded(char["passage"]) == (0.797, 0.983, 0.886)
+    assert _rounded(char["passage"]) == (0.797, 0.983, 0.883)
 
 
 def test_normalisation_must_match(fixtures) -> None:  # type: ignore[no-untyped-def]
@@ -45,7 +45,7 @@ def test_normalisation_must_match(fixtures) -> None:  # type: ignore[no-untyped-
         "passage"
     ]
     assert round(both.mrr, 3) == 0.836
-    assert round(index_only.mrr, 3) == 0.682
+    assert round(index_only.mrr, 3) == 0.680
 
 
 def test_index_documents_fits_tfidf(fixtures) -> None:  # type: ignore[no-untyped-def]

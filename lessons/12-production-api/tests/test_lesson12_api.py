@@ -64,8 +64,8 @@ def test_cache_get_set_and_ttl(cm: ModuleType) -> None:
     clock = Clock()
     cache = cm.AnswerCache(maxsize=10, ttl=60, clock=clock)
     assert cache.get("k") is None
-    cache.set("k", {"answer": "۴۵ هزار تومان"})
-    assert cache.get("k") == {"answer": "۴۵ هزار تومان"}
+    cache.set("k", {"answer": "۲۰۰ هزار تومان"})
+    assert cache.get("k") == {"answer": "۲۰۰ هزار تومان"}
     clock.t += 59
     assert cache.get("k") is not None
     clock.t += 1

@@ -55,10 +55,10 @@ pip install -e ".[loaders]"     # pypdf, python-docx, beautifulsoup4
 | فایل | چه مشکلی را شبیه‌سازی می‌کند |
 |---|---|
 | `kahroba-notice.txt` | رمزگذاری قدیمی ویندوز (Windows-1256) با `ي`/`ك` عربی |
-| `sepidar-events.html` | منو، مسیر راهنما (Breadcrumb)، بنر کوکی، نوار کناری و فوتر؛ موجودیت `&zwnj;` و نشانهٔ LRM |
+| `mehregan-events.html` | منو، مسیر راهنما (Breadcrumb)، بنر کوکی، نوار کناری و فوتر؛ موجودیت `&zwnj;` و نشانهٔ LRM |
 | `kahroba-installation-guide.docx` | سرتیتر، فهرست، جدول، و نشانه‌های نامرئی RLM دور شماره‌مدل‌های لاتین |
 | `kahroba-catalog.pdf` | حروف ذخیره‌شده به شکل **Presentation Forms** و نیم‌فاصله‌های گم‌شده |
-| `sepidar-newsletter.pdf` | همان مشکل‌ها، به‌علاوهٔ **ترتیب دیداری (Visual order)** — متن برعکس استخراج می‌شود |
+| `mehregan-newsletter.pdf` | همان مشکل‌ها، به‌علاوهٔ **ترتیب دیداری (Visual order)** — متن برعکس استخراج می‌شود |
 
 هر دو PDF روی صفحه **کاملاً درست** دیده می‌شوند. مشکل فقط وقتی پیدا می‌شود که متنشان را بیرون بکشید — دقیقاً مثل PDFهای واقعی.
 
@@ -86,13 +86,13 @@ read_text_file("data/fixtures/documents/kahroba-notice.txt")
 `remove_boilerplate` سه نشانه را بررسی می‌کند: نام برچسب (`nav`، `header`، `footer`، `aside`، `script`...)، ویژگی `role` (مثل `navigation`)، و نام‌های `class`/`id` شبیه `cookie`، `breadcrumb` و `sidebar`. بعد سرتیترها به `#` و ردیف‌های جدول به `a | b` تبدیل می‌شوند:
 
 ```text
-# رویدادهای پاییز کتابخانهٔ سپیدار
+# رویدادهای پاییز کتابخانهٔ مهرگان
 
 در فصل پاییز، کتابخانه برنامه‌های تازه‌ای ... برگزار می‌کند. ...
 
 ## هفتهٔ کتاب
 ...
-کارگاه داستان‌نویسی | ۴۰ هزار تومان | ۸۰ هزار تومان
+کارگاه داستان‌نویسی | ۲۰۰ هزار تومان | ۴۰۰ هزار تومان
 ```
 
 این قاعده‌های ساده برای بیشتر سایت‌ها کافی‌اند؛ برای سایت‌های پیچیده ابزارهای تخصصی‌تری مثل [trafilatura](https://github.com/adbar/trafilatura) هم هست.
@@ -173,10 +173,10 @@ flowchart LR
 ```python
 from parsrag.loaders import load_pdf
 
-doc = load_pdf("data/fixtures/documents/sepidar-newsletter.pdf")
+doc = load_pdf("data/fixtures/documents/mehregan-newsletter.pdf")
 doc.metadata["pages"]   # [{'page': 1, 'start': 0, 'end': 451, 'visual_order': True}]
 doc.text.splitlines()[1]
-# 'کتابخانهٔ سپیدار از این ماه یک قفسهٔ هوشمند برای امانت شبانه نصب می‌کند.'
+# 'کتابخانهٔ مهرگان از این ماه یک قفسهٔ هوشمند برای امانت شبانه نصب می‌کند.'
 ```
 
 ## اندازه‌گیری: هر گام چقدر متن را برمی‌گرداند؟
@@ -195,7 +195,7 @@ raw pypdf text                       0.076      0/3  False
 + visual-order fix                   0.938      2/3  False
 + ZWNJ recovery (= load_pdf)         1.000      3/3   True
 
-sepidar-newsletter.pdf
+mehregan-newsletter.pdf
 step                           word recall  phrases  exact
 raw pypdf text                       0.067      0/3  False
 + NFKC presentation forms            0.080      0/3  False

@@ -19,7 +19,7 @@ from parsrag.types import Document
 SHOP = Document(
     id="shop",
     title="راهنمای فروشگاه",
-    text="# ارسال\nهزینهٔ پیک در تهران ۴۵ هزار تومان است.\n\n# مرجوعی\n"
+    text="# ارسال\nهزینهٔ پیک در تهران ۲۰۰ هزار تومان است.\n\n# مرجوعی\n"
     "کالا را تا ۷ روز پس از تحویل می‌توانید مرجوع کنید.",
 )
 LIB = Document(id="lib", text="کتابخانه از ساعت ۸ صبح تا ۸ شب باز است.")
@@ -45,7 +45,7 @@ def test_add_documents_ask_and_cite() -> None:
     timings = Timings()
     ans = rag.ask("هزینهٔ پیک در تهران چقدر است؟", timings=timings)
     assert not ans.abstained
-    assert "۴۵" in ans.text or "45" in ans.text
+    assert "۲۰۰" in ans.text or "200" in ans.text
     assert ans.citations and ans.citations[0].doc_id == "shop"
     assert "هزینهٔ پیک در تهران" in rag.passage(ans.citations[0])
     assert timings.llm_calls == 1 and timings.total_ms >= timings.retrieve_ms >= 0
@@ -191,7 +191,9 @@ def test_validate_qa_finds_problems() -> None:
 
     docs = [SHOP]
     items = [
-        QAItem(id="1", question="هزینهٔ پیک؟", answer="۴۵", doc_id="shop", evidence="۴۵ هزار تومان"),
+        QAItem(
+            id="1", question="هزینهٔ پیک؟", answer="۲۰۰", doc_id="shop", evidence="۲۰۰ هزار تومان"
+        ),
         QAItem(id="2", question="؟", answer="-", doc_id="shop"),
         QAItem(id="2", question=" ", answer="-", doc_id=None, evidence="x"),
         QAItem(id="3", question="پیک؟", answer="-", doc_id="shop", evidence="۵۰ هزار تومان"),
