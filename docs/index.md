@@ -2,7 +2,7 @@
 
 **یک دورهٔ رایگان و پروژه‌محور در ۱۵ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی.**
 
-در هر درس یک بخش از کتابخانهٔ پایتونی `parsrag` را خودتان می‌سازید: یک توضیح فارسی با نمودار و عددهای اندازه‌گیری‌شده، یک کد شروع (Starter) با جاهای خالی، و یک تصحیح‌کنندهٔ خودکار (Grader) که برای هر بررسیِ ناموفق راهنمایی می‌دهد. کتابخانهٔ کامل در [گیت‌هاب](https://github.com/snikookar/Persian-RAG-Academy) همان پاسخ مرجع است.
+در هر درس یک بخش از کتابخانهٔ پایتونی `parsrag` را خودتان می‌سازید. هر درس یک توضیح فارسی با نمودار و عددهای اندازه‌گیری‌شده دارد، یک کد شروع (Starter) با جاهای خالی، و یک تصحیح‌کنندهٔ خودکار (Grader) که برای هر بررسیِ ناموفق راهنمایی می‌دهد. کتابخانهٔ کامل در [گیت‌هاب](https://github.com/snikookar/Persian-RAG-Academy) همان پاسخ مرجع است.
 
 !!! tip "بدون کلید API، بدون اینترنت"
     همهٔ درس‌ها، تست‌ها و مثال‌ها با `FakeLLM` و `HashingEmbedding` روی یک لپ‌تاپ معمولی اجرا می‌شوند. مدل واقعی (هر API سازگار با OpenAI، Ollama یا sentence-transformers) همیشه اختیاری است.
@@ -15,7 +15,7 @@ pip install -e ".[loaders]" pytest ruff
 python -m grader run 00
 ```
 
-بعد از [درس ۰۰](lessons/00-setup.md) شروع کنید. هر درس با `python -m grader run NN` تصحیح می‌شود.
+بعد سراغ [درس ۰۰](lessons/00-setup.md) بروید. هر درس با `python -m grader run NN` تصحیح می‌شود.
 
 ## نقشهٔ دوره
 
@@ -51,7 +51,7 @@ flowchart TB
 
 ## چه چیزی کجاست؟
 
-- **درس‌ها:** منوی کنار صفحه. هر درس همان فایل `lessons/NN-…/README.fa.md` مخزن است.
+- **درس‌ها:** در منوی کنار صفحه. هر درس همان فایل `lessons/NN-…/README.fa.md` مخزن است.
 - **مرجع:** [کتابخانهٔ parsrag](reference/library.md)، [خط فرمان](reference/cli.md) و [API وب](reference/http-api.md).
 - **نتیجه‌ها:** [نمودارهای همهٔ اندازه‌گیری‌ها](results.md) و [گزارش ارزیابی پایپ‌لاین](eval/report.md).
 - **بنچمارک مدل‌های واقعی:** [دفترچهٔ Colab](https://colab.research.google.com/github/snikookar/Persian-RAG-Academy/blob/main/notebooks/benchmark_real_embeddings.ipynb) برای سنجیدن مدل‌های برداری‌سازی Hugging Face روی پرسش‌های دوره (درس ۰۵).
