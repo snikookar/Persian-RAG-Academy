@@ -1,6 +1,6 @@
 # آکادمی RAG فارسی
 
-**یک دورهٔ رایگان و پروژه‌محور در ۱۴ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی.**
+**یک دورهٔ رایگان و پروژه‌محور در ۱۵ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی.**
 
 در هر درس یک بخش از کتابخانهٔ پایتونی `parsrag` را خودتان می‌سازید: یک توضیح فارسی با نمودار و عددهای اندازه‌گیری‌شده، یک کد شروع (Starter) با جاهای خالی، و یک تصحیح‌کنندهٔ خودکار (Grader) که برای هر بررسیِ ناموفق راهنمایی می‌دهد. کتابخانهٔ کامل در [گیت‌هاب](https://github.com/snikookar/Persian-RAG-Academy) همان پاسخ مرجع است.
 
@@ -28,6 +28,7 @@ flowchart TB
     L08 --> L09["۰۹ تولید مستند"] --> L10["۱۰ ارزیابی"]
     L10 --> L11["۱۱ RAG عامل‌محور"] --> L12["۱۲ API تولیدی"]
     L12 --> L13["۱۳ پروژهٔ پایانی"]
+    L13 --> L14["۱۴ امنیت RAG"]
 ```
 
 | درس | موضوع | ماژول `parsrag` |
@@ -46,12 +47,14 @@ flowchart TB
 | [۱۱](lessons/11-agentic-rag.md) | RAG عامل‌محور با LangGraph | `parsrag.agent` |
 | [۱۲](lessons/12-production-api.md) | API تولیدی (FastAPI، استریم، کش، Docker) | `parsrag.api` |
 | [۱۳](lessons/13-capstone.md) | پروژهٔ پایانی: RAG روی اسناد خودتان | `parsrag.rag`، `parsrag.cli` |
+| [۱۴](lessons/14-rag-security.md) | امنیت RAG: تزریق پرامپت پنهان در اسناد | `parsrag.security` |
 
 ## چه چیزی کجاست؟
 
 - **درس‌ها:** منوی کنار صفحه. هر درس همان فایل `lessons/NN-…/README.fa.md` مخزن است.
 - **مرجع:** [کتابخانهٔ parsrag](reference/library.md)، [خط فرمان](reference/cli.md) و [API وب](reference/http-api.md).
 - **نتیجه‌ها:** [نمودارهای همهٔ اندازه‌گیری‌ها](results.md) و [گزارش ارزیابی پایپ‌لاین](eval/report.md).
+- **بنچمارک مدل‌های واقعی:** [دفترچهٔ Colab](https://colab.research.google.com/github/snikookar/Persian-RAG-Academy/blob/main/notebooks/benchmark_real_embeddings.ipynb) برای سنجیدن مدل‌های برداری‌سازی Hugging Face روی پرسش‌های دوره (درس ۰۵).
 - **واژه‌نامه:** [اصطلاحات فارسی و انگلیسی دوره](glossary.fa.md) — هر اصطلاح یک معادل ثابت در همهٔ درس‌ها.
 
 ## مشارکت

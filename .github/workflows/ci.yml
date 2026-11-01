@@ -54,6 +54,8 @@ jobs:
           python examples/evaluation_report.py
           python examples/agentic_rag.py
           python examples/api_latency.py
+          python examples/injection_attacks.py
+          python examples/injection_test.py --help > /dev/null
           python -m parsrag.doctor
       - name: Command line works offline
         run: |
@@ -84,6 +86,22 @@ jobs:
           python-version: "3.12"
       - name: Every relative link and heading anchor in the repository resolves
         run: python scripts/check_links.py
+
+  notebook:
+    name: Colab notebook (cleared outputs, offline cells run without network)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (core + matplotlib for the chart cell — no sentence-transformers, no models)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Valid notebook JSON, outputs cleared, offline cells run with sockets blocked
+        run: python scripts/check_notebook.py --run
 
   core-only:
     name: core install only (pydantic + numpy)

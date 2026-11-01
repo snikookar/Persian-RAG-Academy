@@ -16,6 +16,7 @@ variable                    meaning                                      default
 ``PARSRAG_RATE_LIMIT``      requests per minute per client (0 = off)     60
 ``PARSRAG_MAX_UPLOAD_MB``   largest accepted upload                      20
 ``PARSRAG_LOG_LEVEL``       ``DEBUG`` / ``INFO`` / ``WARNING``           INFO
+``PARSRAG_SECURITY``        prompt-injection guard (lesson 14) on/off    config
 =========================== ============================================ ==========
 
 No ``pydantic-settings`` dependency: :meth:`Settings.from_env` reads
@@ -44,6 +45,7 @@ class Settings(BaseModel):
     rate_limit: int = 60
     max_upload_mb: float = 20.0
     log_level: str = "INFO"
+    security: bool | None = None
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> Settings:

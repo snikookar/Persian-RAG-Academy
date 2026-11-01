@@ -56,6 +56,10 @@ provider = "fake"              # "fake" (offline, extractive) | "ollama" | "open
 # base_url = "http://localhost:11434/v1"
 # api_key_env = "OPENAI_API_KEY"
 timeout = 60
+
+[security]
+enabled = false                # prompt-injection guard (lesson 14)
+# action = "drop"              # "drop" | "flag" suspicious chunks
 """
 
 

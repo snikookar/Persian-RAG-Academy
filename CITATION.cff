@@ -3,7 +3,7 @@ message: "If you use the course or the parsrag library, please cite it as below.
 type: software
 title: "Persian RAG Academy: a course and library for Retrieval-Augmented Generation on Persian text"
 abstract: >-
-  A free, project-based course in Persian (14 lessons) on building, evaluating and
+  A free, project-based course in Persian (15 lessons) on building, evaluating and
   deploying Retrieval-Augmented Generation for Persian text, together with parsrag,
   the Python library the learners rebuild lesson by lesson. Everything runs offline
   with deterministic models; real models are optional.

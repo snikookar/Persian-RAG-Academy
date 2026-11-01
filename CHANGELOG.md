@@ -8,6 +8,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **14 RAG security** (lesson): indirect prompt injection hidden in retrieved documents.
+  `parsrag.security` — Persian/English injection detection on normalised text, sanitising
+  of links, images, HTML, fake citations and delimiter look-alikes, sandboxed context with
+  a random nonce, instruction-hierarchy prompt and reminder, post-generation checks
+  (links removed; refuse uncited, unsupported, echoed or instruction-following answers),
+  `InjectionGuard` and `GuardedRetriever`. Opt-in via `PersianRAG(guard=True)`,
+  `[security]` in `parsrag.toml` or `PARSRAG_SECURITY` for the API; answers carry the
+  problems found and refusals use `abstain_reason="unsafe"`.
+- `FakeLLM(obey=...)`: simulated models that obey instructions found in their context
+  (naive) or only outside the data markers (hierarchy-respecting), for offline measurement.
+- `data/fixtures/attacks/`: 8 original attack documents, 3 benign hard negatives and
+  `attacks.jsonl`, kept apart from the main corpus so its numbers are unchanged.
+- `examples/injection_attacks.py` (offline attack-success, detection and cost tables) and
+  `examples/injection_test.py` (the same attacks against any OpenAI-compatible model).
+- `notebooks/benchmark_real_embeddings.ipynb`: a Colab notebook that benchmarks multilingual
+  Hugging Face embedding models (and optionally any OpenAI-compatible endpoint) next to the
+  offline baselines on both question sets; lesson 05 has an empty real-model results table
+  for contributed runs. CI checks the notebook offline (`scripts/check_notebook.py`).
 - The web UI bundles the Vazirmatn font (SIL OFL 1.1), served by the API at
   `GET /static/fonts/{name}`, so it renders the same offline.
 
@@ -19,6 +37,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixtures: the fictional library is renamed to «کتابخانهٔ مهرگان» (`mehregan-*`) and all
   prices are set to plausible late-2026 levels; every benchmark number, chart and the eval
   baseline are recomputed.
+
+### Fixed
+
+- Docs workflow: a running GitHub Pages deployment from `main` is no longer cancelled by the
+  next push.
 
 ## [0.1.0] - not yet released
 

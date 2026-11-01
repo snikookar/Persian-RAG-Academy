@@ -12,9 +12,11 @@ on:
 permissions:
   contents: read
 
+# PR builds may cancel each other; a running Pages deployment from main is never cancelled
+# halfway (GitHub's recommendation for Pages), the next one waits for it instead.
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:

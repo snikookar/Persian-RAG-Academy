@@ -15,7 +15,9 @@ Defaults are the choices measured in lessons 02–09:
   (lesson 08);
 * :class:`~parsrag.generate.GroundedGenerator` with ``k=4``, citations and a
   BM25-score abstention threshold set by :meth:`PersianRAG.calibrate` (lesson 09);
-* :meth:`PersianRAG.evaluate` = lesson 10's report.
+* :meth:`PersianRAG.evaluate` = lesson 10's report;
+* no prompt-injection guard unless you opt in with ``guard=True`` or an
+  :class:`~parsrag.security.InjectionGuard` (lesson 14).
 
 Every part can be replaced with a keyword argument (``embedding``, ``llm``,
 ``chunker``, ``store``, ``reranker``). The default LLM is the offline
@@ -44,10 +46,17 @@ from parsrag.generate import (
     calibrate_threshold,
     retriever_confidence,
 )
-from parsrag.llm import LLM, stream_text
+from parsrag.llm import LLM, split_for_streaming, stream_text
 from parsrag.normalize import normalize
 from parsrag.rerank import LexicalReranker, Reranker, RerankingRetriever
-from parsrag.retrieval import BM25Retriever, DenseRetriever, HybridRetriever, PersianTokenizer
+from parsrag.retrieval import (
+    BM25Retriever,
+    DenseRetriever,
+    HybridRetriever,
+    PersianTokenizer,
+    Retriever,
+)
+from parsrag.security import InjectionGuard
 from parsrag.stores.base import Filter, VectorStore
 from parsrag.stores.memory import InMemoryVectorStore
 from parsrag.types import Chunk, Document, SearchResult
@@ -101,8 +110,10 @@ class PersianRAG:
         normalize_text: bool = True,
         min_score: float | None = None,
         config: RAGConfig | None = None,
+        guard: InjectionGuard | bool | None = None,
     ) -> None:
         self.config = config or RAGConfig()
+        self.guard: InjectionGuard | None = InjectionGuard() if guard is True else (guard or None)
         self.embedding = embedding or HashingEmbedding()
         self.llm = llm if llm is not None else make_llm(self.config.llm)
         self.chunker = chunker or RecursiveChunker(400, 50)
@@ -155,6 +166,7 @@ class PersianRAG:
             "min_score": rr.min_score,
             "reranker": _make_reranker(rr.rerank, rr.cross_encoder),
             "config": cfg,
+            "guard": cfg.security.make_guard(),
         }
         if "llm" not in overrides:
             kwargs["llm"] = make_llm(cfg.llm)
@@ -272,12 +284,14 @@ class PersianRAG:
         return HybridRetriever([self.bm25, DenseRetriever(self.store, preprocess=self.preprocess)])
 
     @property
-    def retriever(self) -> RerankingRetriever | HybridRetriever:
-        """:attr:`hybrid`, reranked when a reranker is set."""
-        hybrid = self.hybrid
-        if self.reranker is None:
-            return hybrid
-        return RerankingRetriever(hybrid, self.reranker, fetch_k=self.fetch_k)
+    def retriever(self) -> Retriever:
+        """:attr:`hybrid`, reranked when a reranker is set, screened when a guard is set."""
+        retriever: Retriever = self.hybrid
+        if self.reranker is not None:
+            retriever = RerankingRetriever(retriever, self.reranker, fetch_k=self.fetch_k)
+        if self.guard is not None and self.guard.detect:
+            retriever = self.guard.wrap(retriever)
+        return retriever
 
     @property
     def generator(self) -> GroundedGenerator:
@@ -288,6 +302,7 @@ class PersianRAG:
             k=self.k,
             min_score=self.min_score,
             confidence=retriever_confidence(self.bm25),
+            guard=self.guard,
         )
 
     def _check_index(self) -> None:
@@ -324,6 +339,9 @@ class PersianRAG:
 
         ``done`` carries the final :class:`GroundedAnswer` (citations checked
         on the full text). An early abstention yields ``sources`` and ``done`` only.
+        With a guard that checks output (lesson 14), the reply is generated in
+        full and checked *before* any token is sent, so an unsafe reply never
+        reaches the user (time to first token = whole generation).
         """
         self._check_index()
         gen = self.generator
@@ -332,6 +350,13 @@ class PersianRAG:
         early, top = gen.precheck(question, results)
         if early is not None:
             yield StreamEvent(type="done", data=early)
+            return
+        if self.guard is not None and self.guard.check_output:
+            raw = "".join(stream_text(self.llm, gen.messages(question, results)))
+            final = gen.finalize(question, results, raw, top)
+            for piece in split_for_streaming(final.answer):
+                yield StreamEvent(type="token", data=piece)
+            yield StreamEvent(type="done", data=final)
             return
         pieces: list[str] = []
         for piece in stream_text(self.llm, gen.messages(question, results)):
@@ -456,6 +481,7 @@ class AnswerPayload(BaseModel):
     abstained: bool
     abstain_reason: str | None = None
     citations: list[dict[str, Any]] = Field(default_factory=list)
+    security: list[str] = Field(default_factory=list)
 
 
 def answer_payload(rag: PersianRAG, answer: GroundedAnswer) -> AnswerPayload:
@@ -467,6 +493,7 @@ def answer_payload(rag: PersianRAG, answer: GroundedAnswer) -> AnswerPayload:
         abstained=answer.abstained,
         abstain_reason=answer.abstain_reason,
         citations=[{**c.model_dump(), "passage": rag.passage(c)} for c in answer.citations],
+        security=list(answer.security),
     )
 
 

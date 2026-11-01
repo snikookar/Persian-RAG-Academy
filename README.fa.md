@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**یک دورهٔ رایگان و پروژه‌محور در ۱۴ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی — به‌همراه `parsrag`، کتابخانه‌ای که در طول دوره خودتان از نو می‌سازید.**
+**یک دورهٔ رایگان و پروژه‌محور در ۱۵ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی — به‌همراه `parsrag`، کتابخانه‌ای که در طول دوره خودتان از نو می‌سازید.**
 
 هر درس یک توضیح فارسی با نمودار و عددهای اندازه‌گیری‌شده دارد، یک کد شروع (Starter) با جاهای خالی، و یک تصحیح‌کنندهٔ خودکار (Grader) که برای هر بررسیِ ناموفق راهنمایی فارسی و انگلیسی نشان می‌دهد. کتابخانهٔ کامل، همان پاسخ مرجع است. همه‌چیز — تست‌ها، تصحیح‌کننده، CI و مثال‌ها — **بدون اینترنت، بدون کلید API و بدون دانلود مدل** اجرا می‌شود. مدل‌های واقعی (هر API سازگار با OpenAI، Ollama، sentence-transformers) اختیاری‌اند.
 
@@ -66,11 +66,12 @@ flowchart TB
     L08 --> L09["۰۹ تولید مستند"] --> L10["۱۰ ارزیابی<br/>دروازهٔ CI"]
     L10 --> L11["۱۱ RAG عامل‌محور<br/>LangGraph"] --> L12["۱۲ API تولیدی<br/>FastAPI · Docker"]
     L12 --> L13["۱۳ پروژهٔ پایانی<br/>اسناد خودتان + رابط وب"]
+    L13 --> L14["۱۴ امنیت RAG<br/>تزریق پرامپت در اسناد"]
 ```
 
 ## نتیجه‌ها
 
-> **این عددها را درست بخوانید.** همه روی پیکرهٔ کوچک و ساختگی خود مخزن به دست آمده‌اند (۲۵ سند فارسی که برای همین دوره نوشته شده، ۵۹ پرسش پاسخ‌دار و ۴۶ بازنویسیِ پاسخ‌دار) و با مدل‌های آفلاین و قطعی (`HashingEmbedding`، یک `FakeLLM` استخراجی و یک LLM قاعده‌محور برای عامل). نشان می‌دهند *چطور* باید اندازه گرفت و هر انتخاب عدد را *به کدام سمت* می‌برد — نه این‌که یک مدل عصبی واقعی چه نمره‌ای می‌گیرد. برای سنجیدن مدل‌های برداری واقعی روی همین پرسش‌ها، [`examples/benchmark_embeddings.py`](examples/benchmark_embeddings.py) را روی کامپیوتر خودتان اجرا کنید. همهٔ نمودارها با [`examples/make_readme_charts.py`](examples/make_readme_charts.py) دوباره ساخته می‌شوند و عددهایشان در [`docs/eval/readme_numbers.json`](docs/eval/readme_numbers.json) است.
+> **این عددها را درست بخوانید.** همه روی پیکرهٔ کوچک و ساختگی خود مخزن به دست آمده‌اند (۲۵ سند فارسی که برای همین دوره نوشته شده، ۵۹ پرسش پاسخ‌دار و ۴۶ بازنویسیِ پاسخ‌دار) و با مدل‌های آفلاین و قطعی (`HashingEmbedding`، یک `FakeLLM` استخراجی و یک LLM قاعده‌محور برای عامل). نشان می‌دهند *چطور* باید اندازه گرفت و هر انتخاب عدد را *به کدام سمت* می‌برد — نه این‌که یک مدل عصبی واقعی چه نمره‌ای می‌گیرد. برای سنجیدن مدل‌های برداری واقعی روی همین پرسش‌ها، [دفترچهٔ Colab](notebooks/benchmark_real_embeddings.ipynb) را باز کنید (GPU رایگان، هر دو مجموعه پرسش) یا [`examples/benchmark_embeddings.py`](examples/benchmark_embeddings.py) را روی کامپیوتر خودتان اجرا کنید، و سطرهای اندازه‌گیری‌شده را به جدول نتیجه‌های درس ۰۵ بفرستید. همهٔ نمودارها با [`examples/make_readme_charts.py`](examples/make_readme_charts.py) دوباره ساخته می‌شوند و عددهایشان در [`docs/eval/readme_numbers.json`](docs/eval/readme_numbers.json) است.
 
 | | |
 |---|---|
@@ -155,6 +156,7 @@ docker compose up --build        # API + PostgreSQL/pgvector ← http://localhos
 | ۱۱ | RAG عامل‌محور با LangGraph | [README](lessons/11-agentic-rag/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/11-agentic-rag/) |
 | ۱۲ | API تولیدی (FastAPI، استریم، کش، Docker) | [README](lessons/12-production-api/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/12-production-api/) |
 | ۱۳ | پروژهٔ پایانی: RAG روی اسناد خودتان با رابط وب | [README](lessons/13-capstone/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/13-capstone/) |
+| ۱۴ | امنیت RAG: تزریق پرامپت پنهان در اسناد | [README](lessons/14-rag-security/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/14-rag-security/) |
 
 واژه‌نامهٔ اصطلاحات فارسی و انگلیسی دوره: [docs/glossary.fa.md](docs/glossary.fa.md).
 
@@ -162,7 +164,7 @@ docker compose up --build        # API + PostgreSQL/pgvector ← http://localhos
 
 **کلید API یا کارت گرافیک لازم دارم؟** نه. همهٔ درس‌ها، تست‌ها و مثال‌ها روی یک لپ‌تاپ معمولی و بدون اینترنت اجرا می‌شوند. مدل واقعی فقط وقتی به کار می‌آید که خودتان گزینه‌ای مثل `--model st:NAME` یا `--llm NAME` بدهید.
 
-**چرا عددها روی پرسش‌های اصلی این‌قدر بالا و روی بازنویسی‌ها این‌قدر پایین‌اند؟** پرسش‌های اصلی همان واژه‌های اسناد را به کار می‌برند و این به نفع روش‌های واژگانی است؛ مجموعهٔ بازنویسی دقیقاً برای نشان دادن همین نوشته شده. انتظار می‌رود برداری‌سازهای عصبی این فاصله را کم کنند — با `examples/benchmark_embeddings.py` خودتان بسنجید.
+**چرا عددها روی پرسش‌های اصلی این‌قدر بالا و روی بازنویسی‌ها این‌قدر پایین‌اند؟** پرسش‌های اصلی همان واژه‌های اسناد را به کار می‌برند و این به نفع روش‌های واژگانی است؛ مجموعهٔ بازنویسی دقیقاً برای نشان دادن همین نوشته شده. انتظار می‌رود برداری‌سازهای عصبی این فاصله را کم کنند — با [دفترچهٔ Colab](notebooks/benchmark_real_embeddings.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/snikookar/Persian-RAG-Academy/blob/main/notebooks/benchmark_real_embeddings.ipynb) یا `examples/benchmark_embeddings.py` خودتان بسنجید.
 
 **`HashingEmbedding` مدل برداری واقعی است؟** نه؛ واژه‌ها و n-gramهای نویسه‌ای را در یک بردار درهم‌سازی (Hash) می‌کند. قطعی است و هیچ وابستگی ندارد، و این همان چیزی است که تست و CI لازم دارند. درس ۰۵ توضیح می‌دهد کی باید عوضش کنید.
 

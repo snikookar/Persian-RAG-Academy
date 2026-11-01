@@ -19,7 +19,7 @@ from __future__ import annotations
 import itertools
 import re
 from collections.abc import Callable, Sequence
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +27,9 @@ from parsrag.llm import LLM, Message
 from parsrag.normalize import normalize
 from parsrag.retrieval import Retriever
 from parsrag.types import Chunk, SearchResult
+
+if TYPE_CHECKING:
+    from parsrag.security import InjectionGuard
 
 # ----------------------------------------------------------------- prompts
 
@@ -173,9 +176,16 @@ def to_citation(number: int, result: SearchResult) -> Citation:
 
 
 #: Why an answer is «نمی‌دانم»: lesson 09's generator uses the first three;
-#: the agent (lesson 11) adds the rest.
+#: the agent (lesson 11) adds the next four; ``unsafe`` comes from lesson 14's guard.
 AbstainReason = Literal[
-    "no_results", "low_score", "model", "clarify", "out_of_scope", "not_relevant", "unfaithful"
+    "no_results",
+    "low_score",
+    "model",
+    "clarify",
+    "out_of_scope",
+    "not_relevant",
+    "unfaithful",
+    "unsafe",
 ]
 
 
@@ -192,6 +202,8 @@ class GroundedAnswer(BaseModel):
     uncited: bool = False
     sources: list[SearchResult] = Field(default_factory=list)
     raw: str = ""
+    #: Problems found by lesson 14's output checks (e.g. ``link_removed``, ``followed``).
+    security: list[str] = Field(default_factory=list)
 
     @property
     def text(self) -> str:
@@ -232,6 +244,10 @@ class GroundedGenerator:
     answers «نمی‌دانم» without calling the LLM. The right value depends on the
     score's scale — calibrate it with :func:`calibrate_threshold` on questions
     with known answerability.
+
+    ``guard`` (lesson 14) switches the prompt to the sandboxed, sanitised one
+    and checks the reply before it is returned; retrieval-time screening is
+    done by wrapping the retriever (:meth:`InjectionGuard.wrap`).
     """
 
     def __init__(
@@ -244,6 +260,7 @@ class GroundedGenerator:
         confidence: Confidence = top_score,
         system_prompt: str = SYSTEM_PROMPT,
         template: str = USER_TEMPLATE,
+        guard: InjectionGuard | None = None,
     ) -> None:
         if k <= 0:
             raise ValueError("k must be positive")
@@ -254,6 +271,7 @@ class GroundedGenerator:
         self.confidence = confidence
         self.system_prompt = system_prompt
         self.template = template
+        self.guard = guard
 
     def answer(self, question: str) -> GroundedAnswer:
         return self.answer_from(question, self.retriever.search(question, self.k))
@@ -293,6 +311,8 @@ class GroundedGenerator:
 
     def messages(self, question: str, results: Sequence[SearchResult]) -> list[Message]:
         """The prompt this generator sends for ``question`` and ``results``."""
+        if self.guard is not None:
+            return self.guard.messages(question, results)
         return build_messages(
             question, results, system_prompt=self.system_prompt, template=self.template
         )
@@ -311,16 +331,33 @@ class GroundedGenerator:
                 sources=list(results),
                 raw=raw,
             )
-        check = validate_citations(raw, len(results))
+        answer, security = raw, []
+        if self.guard is not None and self.guard.check_output:
+            verdict = self.guard.check_answer(raw, results)
+            security = list(verdict.problems)
+            if verdict.refuse:
+                return GroundedAnswer(
+                    question=question,
+                    answer=REFUSAL,
+                    abstained=True,
+                    abstain_reason="unsafe",
+                    top_score=top,
+                    sources=list(results),
+                    raw=raw,
+                    security=security,
+                )
+            answer = verdict.answer
+        check = validate_citations(answer, len(results))
         return GroundedAnswer(
             question=question,
-            answer=raw.strip(),
+            answer=answer.strip(),
             citations=[to_citation(n, results[n - 1]) for n in check.valid],
             top_score=top,
             invalid_citations=check.invalid,
             uncited=check.uncited,
             sources=list(results),
             raw=raw,
+            security=security,
         )
 
 

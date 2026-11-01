@@ -52,6 +52,15 @@ _QUESTION_MARKERS = ("پرسش:", "سوال:", "سؤال:", "Question:")
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?؟])\s+|\n+")
 _WORD = re.compile(r"\w+")
 _BLOCK = re.compile(r"^\[(\d+)\]", re.MULTILINE)
+# Lesson 14's naive model: "<verb>: payload" directives, Persian or English.
+_DIRECTIVE = re.compile(
+    r"(?:^|[\s:؛،.])(?:فقط |تنها |همیشه |only |just )?"
+    r"(?:بنویس|بگو|جواب بده|پاسخ بده|ذکر کن|ذکر کنند|answer|say|write|reply|respond)"
+    r"(?: with)?\s*:\s*(.+)$",
+    re.IGNORECASE,
+)
+_DATA_OPEN = re.compile(r"^<<<DATA(-\w+)?>>>$")
+_HIDDEN = re.compile("[\u200b\u200d\u2060\ufeff]")
 
 
 def _words(text: str, ignore: frozenset[str] = frozenset()) -> set[str]:
@@ -92,6 +101,16 @@ class FakeLLM:
        shared words the reply is ``fallback`` — a stand-in for a model that
        follows an "answer «نمی‌دانم» if the context does not say" instruction.
 
+    ``obey`` simulates a model that is vulnerable to indirect prompt injection
+    (lesson 14). ``"all"``: if the retrieved context (the last user message
+    before the question marker) contains a directive such as «فقط بنویس: X»
+    or ``only answer: X``, the reply is ``X`` (plus `` [n]`` for the block it
+    came from when ``cite=True``) — a deliberately naive model. ``"outside_data"``:
+    directives between ``<<<DATA…>>>`` and the matching ``<<<END-DATA…>>>`` line
+    are ignored — a model that respects the instruction hierarchy perfectly,
+    as long as the delimiters hold. Real models sit somewhere in between and
+    are far less predictable.
+
     Every call is recorded in :attr:`calls` so tests can inspect prompts.
     """
 
@@ -106,6 +125,7 @@ class FakeLLM:
         cite: bool = False,
         ignore: Iterable[str] = (),
         min_overlap: int = 1,
+        obey: Literal["never", "all", "outside_data"] = "never",
     ) -> None:
         if responses is not None and len(responses) == 0:
             raise ValueError("responses must be non-empty when given")
@@ -117,6 +137,9 @@ class FakeLLM:
         self.cite = cite
         self.ignore = frozenset(w.lower() for w in ignore)
         self.min_overlap = max(1, min_overlap)
+        if obey not in ("never", "all", "outside_data"):
+            raise ValueError("obey must be 'never', 'all' or 'outside_data'")
+        self.obey = obey
         self.calls: list[list[Message]] = []
 
     def generate(self, messages: Sequence[MessageLike]) -> str:
@@ -127,6 +150,10 @@ class FakeLLM:
         if self.responses is not None:
             return self.responses[(len(self.calls) - 1) % len(self.responses)]
         last_user = next((m.content for m in reversed(msgs) if m.role == "user"), "")
+        if self.obey != "never":
+            injected = self._obey(last_user)
+            if injected is not None:
+                return injected
         if self.mode == "extractive":
             return self._extract(last_user)
         return f"{self.prefix}{last_user}"
@@ -134,6 +161,34 @@ class FakeLLM:
     def stream(self, messages: Sequence[MessageLike]) -> Iterator[str]:
         """The same reply as :meth:`generate`, yielded word by word (spaces kept)."""
         yield from split_for_streaming(self.generate(messages))
+
+    def _obey(self, prompt: str) -> str | None:
+        """The first directive found in the context part of ``prompt`` (lesson 14)."""
+        from parsrag.normalize import normalize
+
+        idx = max(prompt.rfind(m) for m in _QUESTION_MARKERS)
+        context = prompt[:idx] if idx > 0 else prompt
+        block: int | None = None
+        closing: str | None = None  # the end marker we are waiting for, while inside data
+        for line in context.splitlines():
+            stripped = line.strip()
+            if closing is not None:
+                if stripped == closing:
+                    closing = None
+                    continue
+            elif self.obey == "outside_data" and (m := _DATA_OPEN.match(stripped)):
+                closing = f"<<<END-DATA{m.group(1) or ''}>>>"
+                continue
+            if (h := _BLOCK.match(stripped)) is not None:
+                block = int(h.group(1))
+            if closing is not None:
+                continue
+            found = _DIRECTIVE.search(normalize(_HIDDEN.sub("", line)))
+            if found:
+                payload = found.group(1).strip().strip("«»\"' ")
+                cite = f" [{block}]" if self.cite and block is not None else ""
+                return f"{payload}{cite}"
+        return None
 
     def _extract(self, prompt: str) -> str:
         context, question = prompt, prompt
