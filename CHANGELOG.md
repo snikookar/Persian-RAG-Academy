@@ -43,7 +43,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Docs workflow: a running GitHub Pages deployment from `main` is no longer cancelled by the
   next push.
 
-## [0.1.0] - not yet released
+## [0.1.0] - 2026-11-01
 
 The first version: 14 lessons and the complete `parsrag` library. Prepared for PyPI; the
 release date is set when it is published (see `docs/RELEASING.md`).
