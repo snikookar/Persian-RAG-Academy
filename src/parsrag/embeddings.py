@@ -48,7 +48,7 @@ def l2_normalize(matrix: FloatArray) -> FloatArray:
     """Normalise each row to unit length (zero rows stay zero)."""
     norms = np.linalg.norm(matrix, axis=-1, keepdims=True)
     norms[norms == 0] = 1.0
-    return (matrix / norms).astype(np.float32)
+    return np.asarray(matrix / norms, dtype=np.float32)
 
 
 def cosine_similarity(a: npt.ArrayLike, b: npt.ArrayLike) -> float:
