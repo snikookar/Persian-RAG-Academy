@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Build, evaluate and ship Retrieval-Augmented Generation (RAG) for Persian text — a free
-14-lesson course in Persian, and `parsrag`, the library you rebuild along the way.**
+15-lesson course in Persian, and `parsrag`, the library you rebuild along the way.**
 
 Every lesson has a Persian explanation with diagrams and measured results, starter code with
 TODOs, and an automatic grader with bilingual hints. The finished library is the reference
@@ -53,7 +53,8 @@ flowchart LR
         S --> H
         B --> H
         H --> R["rerank<br/>(08) 20 → 4"]
-        R --> G["grounded generation<br/>(09) citations · «نمی‌دانم»"]
+        R --> SEC["injection guard (14, opt-in)<br/>detect · sanitise · sandbox"]
+        SEC --> G["grounded generation<br/>(09) citations · «نمی‌دانم»"]
         G --> A["Answer + citations"]
     end
     A -.-> EV["eval (10)<br/>metrics · bootstrap · CI gate"]
@@ -73,6 +74,7 @@ flowchart TB
     L08 --> L09["09 Grounded generation"] --> L10["10 Evaluation<br/>CI gate"]
     L10 --> L11["11 Agentic RAG<br/>LangGraph"] --> L12["12 Production API<br/>FastAPI · Docker"]
     L12 --> L13["13 Capstone<br/>your documents + UI"]
+    L13 --> L14["14 RAG security<br/>prompt injection in documents"]
 ```
 
 ## Results
@@ -180,6 +182,7 @@ and opens every citation at its exact span in the source document:
 | 11 | Agentic RAG with LangGraph | RAG عامل‌محور با LangGraph | [README](lessons/11-agentic-rag/README.fa.md) | [site](https://snikookar.github.io/Persian-RAG-Academy/lessons/11-agentic-rag/) |
 | 12 | Production API (FastAPI, streaming, cache, Docker) | API تولیدی | [README](lessons/12-production-api/README.fa.md) | [site](https://snikookar.github.io/Persian-RAG-Academy/lessons/12-production-api/) |
 | 13 | Capstone: RAG over your own documents + UI | پروژهٔ پایانی | [README](lessons/13-capstone/README.fa.md) | [site](https://snikookar.github.io/Persian-RAG-Academy/lessons/13-capstone/) |
+| 14 | RAG security: prompt injection hidden in documents | امنیت RAG: تزریق پرامپت در اسناد | [README](lessons/14-rag-security/README.fa.md) | [site](https://snikookar.github.io/Persian-RAG-Academy/lessons/14-rag-security/) |
 
 ## FAQ
 

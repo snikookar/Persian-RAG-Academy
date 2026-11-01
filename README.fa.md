@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**یک دورهٔ رایگان و پروژه‌محور در ۱۴ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی — به‌همراه `parsrag`، کتابخانه‌ای که در طول دوره خودتان از نو می‌سازید.**
+**یک دورهٔ رایگان و پروژه‌محور در ۱۵ درس برای ساختن، سنجیدن و راه‌اندازی سیستم‌های تولید تقویت‌شده با بازیابی (Retrieval-Augmented Generation یا RAG) روی متن فارسی — به‌همراه `parsrag`، کتابخانه‌ای که در طول دوره خودتان از نو می‌سازید.**
 
 هر درس یک توضیح فارسی با نمودار و عددهای اندازه‌گیری‌شده دارد، یک کد شروع (Starter) با جاهای خالی، و یک تصحیح‌کنندهٔ خودکار (Grader) که برای هر بررسیِ ناموفق راهنمایی فارسی و انگلیسی نشان می‌دهد. کتابخانهٔ کامل، همان پاسخ مرجع است. همه‌چیز — تست‌ها، تصحیح‌کننده، CI و مثال‌ها — **بدون اینترنت، بدون کلید API و بدون دانلود مدل** اجرا می‌شود. مدل‌های واقعی (هر API سازگار با OpenAI، Ollama، sentence-transformers) اختیاری‌اند.
 
@@ -66,6 +66,7 @@ flowchart TB
     L08 --> L09["۰۹ تولید مستند"] --> L10["۱۰ ارزیابی<br/>دروازهٔ CI"]
     L10 --> L11["۱۱ RAG عامل‌محور<br/>LangGraph"] --> L12["۱۲ API تولیدی<br/>FastAPI · Docker"]
     L12 --> L13["۱۳ پروژهٔ پایانی<br/>اسناد خودتان + رابط وب"]
+    L13 --> L14["۱۴ امنیت RAG<br/>تزریق پرامپت در اسناد"]
 ```
 
 ## نتیجه‌ها
@@ -155,6 +156,7 @@ docker compose up --build        # API + PostgreSQL/pgvector ← http://localhos
 | ۱۱ | RAG عامل‌محور با LangGraph | [README](lessons/11-agentic-rag/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/11-agentic-rag/) |
 | ۱۲ | API تولیدی (FastAPI، استریم، کش، Docker) | [README](lessons/12-production-api/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/12-production-api/) |
 | ۱۳ | پروژهٔ پایانی: RAG روی اسناد خودتان با رابط وب | [README](lessons/13-capstone/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/13-capstone/) |
+| ۱۴ | امنیت RAG: تزریق پرامپت پنهان در اسناد | [README](lessons/14-rag-security/README.fa.md) | [سایت](https://snikookar.github.io/Persian-RAG-Academy/lessons/14-rag-security/) |
 
 واژه‌نامهٔ اصطلاحات فارسی و انگلیسی دوره: [docs/glossary.fa.md](docs/glossary.fa.md).
 
