@@ -214,7 +214,7 @@ def test_check_answer() -> None:
     link = guard.check_answer(
         "ارسال در تهران ۲ روز طول می‌کشد. [1] ![x](https://e.example.com/?q=1)", results
     )
-    assert "link_removed" in link.problems and "example" not in link.answer
+    assert link.problems == ["link_removed"] and not link.refuse and "example" not in link.answer
     assert guard.check_answer("ارسال رایگان است", results).problems == ["uncited"]
     assert "unsupported" in guard.check_answer("ارسال ۹ روز طول می‌کشد. [1]", results).problems
     assert "invalid_citation" in guard.check_answer("ارسال [7]", results).problems
@@ -339,3 +339,25 @@ def test_api_build_rag_enables_the_guard(tmp_path: Path) -> None:
     rag = build_rag(Settings(docs=str(docs), security=True))
     assert isinstance(rag.guard, InjectionGuard)
     assert build_rag(Settings(docs=str(docs))).guard is None
+
+
+@pytest.mark.parametrize(("normalise", "tp", "fp", "fn"), [(True, 7, 0, 1), (False, 6, 0, 2)])
+def test_measured_detection_on_attack_and_benign_chunks(
+    normalise: bool, tp: int, fp: int, fn: int
+) -> None:
+    """The detection table in lesson 14: raw chunks (no index normalisation)."""
+    cases = load_attacks(ATTACKS / "attacks.jsonl")
+    chunker = RecursiveChunker(400, 50)
+    texts = [
+        c.text
+        for folder in ("documents", "benign")
+        for d in load_directory(ATTACKS / folder, "*.md")
+        for c in chunk_document(d, chunker, preprocess=None, heading_context=True)
+    ]
+    labels = [any(contains_injection(t, c) for c in cases) for t in texts]
+    preds = [detect_injection(t, normalise=normalise).flagged for t in texts]
+    pairs = list(zip(preds, labels, strict=True))
+    assert (len(texts), sum(labels)) == (16, 8)
+    assert sum(p and y for p, y in pairs) == tp
+    assert sum(p and not y for p, y in pairs) == fp
+    assert sum(not p and y for p, y in pairs) == fn

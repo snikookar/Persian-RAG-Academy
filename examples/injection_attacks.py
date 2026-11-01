@@ -86,7 +86,8 @@ def detection_metrics(cases: list[AttackCase], normalise: bool) -> dict[str, flo
             for c in chunk_document(d, chunker, preprocess=None, heading_context=True)
         ]
 
-    labelled = [(t, any(contains_injection(t, c) for c in cases)) for t in chunks(ATTACKS)]
+    texts = chunks(ATTACKS / "documents") + chunks(ATTACKS / "benign")
+    labelled = [(t, any(contains_injection(t, c) for c in cases)) for t in texts]
     pred = [detect_injection(t, normalise=normalise).flagged for t, _ in labelled]
     tp = sum(p and y for p, (_, y) in zip(pred, labelled, strict=True))
     fp = sum(p and not y for p, (_, y) in zip(pred, labelled, strict=True))

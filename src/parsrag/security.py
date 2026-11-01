@@ -479,11 +479,12 @@ class InjectionGuard:
         if check.uncited:
             problems.append("uncited")
         cited = [results[n - 1] for n in check.valid]
+        claims = cleaned.replace(LINK_REMOVED, " ").replace(IMAGE_REMOVED, " ")
         if cited:
-            support = faithfulness(cleaned, [self.render(r.chunk) for r in cited], self.min_support)
+            support = faithfulness(claims, [self.render(r.chunk) for r in cited], self.min_support)
             if support.score < 1.0:
                 problems.append("unsupported")
-        if detect_injection(cleaned, normalise=self.normalise).flagged:
+        if detect_injection(claims, normalise=self.normalise).flagged:
             problems.append("echo")
         if any(self.scan(r.chunk).flagged for r in cited):
             problems.append("followed")
