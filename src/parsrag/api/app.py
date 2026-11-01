@@ -23,7 +23,7 @@ import json
 import tempfile
 import threading
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -220,7 +220,7 @@ class RAGService:
     async def ask(self, question: str, filters: dict[str, Any] | None = None) -> AskResponse:
         key = self._key(question, filters)
         start = time.perf_counter()
-        hit = self.cache.get(key)
+        hit: AskResponse | None = self.cache.get(key)
         if hit is not None:
             total = (time.perf_counter() - start) * 1000
             response = hit.model_copy(
@@ -279,7 +279,7 @@ class RAGService:
         """Server-Sent Events: ``sources``, then ``token`` events, then ``done`` (or ``error``)."""
         start = time.perf_counter()
         key = self._key(question, filters)
-        hit = self.cache.get(key)
+        hit: AskResponse | None = self.cache.get(key)
         if hit is not None:
             yield sse("sources", [c.model_dump() for c in hit.citations])
             for piece in split_for_streaming(hit.answer):
@@ -344,12 +344,11 @@ class RAGService:
         yield sse("done", response.model_dump())
 
 
-async def _iterate_in_thread(iterator: Any, timeout: float) -> AsyncIterator[str]:
+async def _iterate_in_thread(iterator: Iterator[str], timeout: float) -> AsyncIterator[str]:
     """Pull a blocking iterator in a worker thread, with a timeout per piece."""
-    sentinel = object()
     while True:
-        item = await asyncio.wait_for(asyncio.to_thread(next, iterator, sentinel), timeout)
-        if item is sentinel:
+        item = await asyncio.wait_for(asyncio.to_thread(next, iterator, None), timeout)
+        if item is None:
             return
         yield item
 

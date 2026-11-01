@@ -106,7 +106,7 @@ class InMemoryVectorStore:
 
     def vectors(self) -> FloatArray:
         """The stored (L2-normalised) vectors, one row per chunk in :attr:`chunks` order."""
-        return self._matrix.copy()
+        return np.array(self._matrix, dtype=np.float32, copy=True)
 
     def search_by_vector(
         self, vector: FloatArray, k: int = 4, *, filter: Filter | None = None

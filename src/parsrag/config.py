@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -155,18 +156,19 @@ class RAGConfig(_Section):
 
 
 def _read_toml(path: Path) -> dict[str, Any]:
-    try:
-        import tomllib  # Python 3.11+
-    except ModuleNotFoundError:  # pragma: no cover - Python 3.10
+    if sys.version_info >= (3, 11):
+        import tomllib
+    else:  # pragma: no cover - Python 3.10
         try:
-            import tomli as tomllib  # type: ignore[no-redef]
+            import tomli as tomllib
         except ModuleNotFoundError as exc:
             raise ImportError(
                 "Reading TOML on Python 3.10 needs tomli (pip install tomli), "
                 "or use a .json config with the same keys."
             ) from exc
     with path.open("rb") as f:
-        return tomllib.load(f)
+        data: dict[str, Any] = tomllib.load(f)
+    return data
 
 
 def load_config(source: str | Path | Mapping[str, Any] | RAGConfig | None = None) -> RAGConfig:

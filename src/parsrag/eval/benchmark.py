@@ -97,8 +97,7 @@ def benchmark_embedding(
         return store.search(prep(question), k)
 
     return {
-        level: evaluate_retrieval(qa, retrieve, ks, level=level)  # type: ignore[arg-type]
-        for level in ("doc", "passage")
+        level: evaluate_retrieval(qa, retrieve, ks, level=level) for level in ("doc", "passage")
     }
 
 
