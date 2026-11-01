@@ -30,7 +30,7 @@ Please read this page before opening a pull request, and follow the
 git clone https://github.com/snikookar/Persian-RAG-Academy.git
 cd Persian-RAG-Academy
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[loaders,faiss,agent,api,openai,dev,docs]" pytest ruff build twine
+pip install -e ".[loaders,faiss,agent,api,openai,dev,docs]" pytest pytest-cov ruff mypy build twine
 ```
 
 Python 3.10–3.12 are supported (CI runs all three plus a core-only install).
@@ -41,7 +41,8 @@ Run what CI runs:
 
 ```bash
 ruff check . && ruff format --check .
-pytest
+mypy                                    # type check src/parsrag (settings in pyproject.toml)
+pytest --cov=parsrag                    # tests + coverage (fails below the floor)
 python -m grader check-solutions        # the reference solution passes every lesson
 python -m grader check-starters         # every blank starter loads and fails
 python -m parsrag.eval gate --baseline docs/eval/baseline.json   # the eval gate
@@ -74,7 +75,8 @@ Never update the baseline to hide a regression.
   (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `ci:`, `build:`, `chore:`).
 - Code, identifiers, docstrings, comments, commit messages and PR descriptions in **English**;
   lesson text (`lessons/*/README.fa.md`) in **Persian**.
-- Full type hints, `ruff` clean, tests for every behaviour change.
+- Full type hints (`mypy` clean, no blanket ignores), `ruff` clean, tests for every
+  behaviour change.
 - Add an entry under *Unreleased* in [CHANGELOG.md](CHANGELOG.md) for user-visible changes.
 - Fill in the PR template; list the numbers that changed and the script that produced them.
 
