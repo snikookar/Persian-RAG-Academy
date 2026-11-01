@@ -3,7 +3,9 @@
 !!! warning "این عددها را درست بخوانید"
     همهٔ عددهای این صفحه روی پیکرهٔ کوچک و ساختگی خود مخزن به دست آمده‌اند: ۲۵ سند فارسی که برای همین دوره نوشته شده، ۵۹ پرسش پاسخ‌دار (`qa.jsonl`) و ۴۶ بازنویسیِ پاسخ‌دار (`qa_paraphrase.jsonl`)، با مدل‌های آفلاین و قطعی: `HashingEmbedding`، یک `FakeLLM` استخراجی و یک LLM قاعده‌محور برای عامل. این عددها نشان می‌دهند *چطور* باید اندازه گرفت و هر انتخاب عدد را *به کدام سمت* می‌برد، نه این‌که یک مدل عصبی واقعی چه نمره‌ای می‌گیرد. با این حجم، یک پرسش حدود ۱٫۷ واحد درصد جابه‌جا می‌کند؛ بازه‌های اطمینان را در [درس ۱۰](lessons/10-evaluation.md) ببینید.
 
-    مدل‌های برداری واقعی را با [`examples/benchmark_embeddings.py`](https://github.com/snikookar/Persian-RAG-Academy/blob/main/examples/benchmark_embeddings.py) روی کامپیوتر خودتان بسنجید.
+    مدل‌های برداری واقعی را با [دفترچهٔ Colab](https://github.com/snikookar/Persian-RAG-Academy/blob/main/notebooks/benchmark_real_embeddings.ipynb) (GPU رایگان، هر دو مجموعه پرسش) یا [`examples/benchmark_embeddings.py`](https://github.com/snikookar/Persian-RAG-Academy/blob/main/examples/benchmark_embeddings.py) روی کامپیوتر خودتان بسنجید و سطرهای اندازه‌گیری‌شده را به جدول «نتیجه‌های مدل‌های واقعی» در [درس ۰۵](lessons/05-embeddings.md) اضافه کنید.
+
+    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/snikookar/Persian-RAG-Academy/blob/main/notebooks/benchmark_real_embeddings.ipynb)
 
 همهٔ نمودارها با یک اسکریپت از نو ساخته می‌شوند و عددهای پشتشان در [`docs/eval/readme_numbers.json`](https://github.com/snikookar/Persian-RAG-Academy/blob/main/docs/eval/readme_numbers.json) ذخیره می‌شود:
 
