@@ -54,6 +54,8 @@ jobs:
           python examples/evaluation_report.py
           python examples/agentic_rag.py
           python examples/api_latency.py
+          python examples/injection_attacks.py
+          python examples/injection_test.py --help > /dev/null
           python -m parsrag.doctor
       - name: Command line works offline
         run: |
