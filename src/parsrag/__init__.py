@@ -13,7 +13,7 @@ from parsrag.security import InjectionGuard
 from parsrag.stores.memory import InMemoryVectorStore
 from parsrag.types import Chunk, Document, SearchResult
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "LLM",

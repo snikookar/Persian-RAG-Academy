@@ -4,9 +4,59 @@ All notable changes to `parsrag` and the Persian RAG Academy course are document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - unreleased
 
-### Added
+Makes `PersianRAG` usable on real data (a saved, incrementally updated index, presets for
+real models, metadata filters), adds type checking and coverage to CI, English lesson
+summaries, a learner progress table and lesson 14. The public API of 0.1.0 is unchanged:
+everything below is added, nothing was renamed or removed.
+
+### Added — library and tools
+
+- **Index persistence.** `PersianRAG.save()` writes a versioned folder (format 2:
+  documents, chunks, vectors of in-memory or FAISS stores, the tokenised BM25 index,
+  content hashes and the configuration) atomically; `PersianRAG.load()` restores it without
+  re-chunking or re-embedding and rebuilds every part from the saved configuration when no
+  arguments are given. 0.1.0 index folders (format 1) still load; a newer format raises a
+  clear error. `PersianRAG.index_info()`, `INDEX_FORMAT_VERSION`.
+- **Incremental ingestion.** `PersianRAG.upsert_documents(items, prune=False)` skips
+  unchanged documents (SHA-256 content hash, `document_hash`), re-indexes changed ones and
+  can remove documents that disappeared; returns an `IndexUpdate`.
+  `remove_documents(ids)` / `remove_document(id)`. Stores gain `delete(ids)` (in-memory,
+  FAISS, pgvector); `BM25Retriever` gains `remove(ids)`, `state()` and `load_state()`.
+- **Metadata filters.** `ask()`, `search()` and `stream()` accept `filters=` on chunk
+  metadata (`doc_id`, `section`, `page`, ...) or document metadata (`title`, `format`, your
+  own keys; list values match by overlap). `resolve_filter()` turns document conditions into
+  a `doc_id` list, so filters also work with pgvector.
+- **Real-model presets.** `parsrag.config.PRESETS` (`offline`, `ollama`,
+  `openai-compatible`), `config_template()` and `preset_config()`; model names are
+  placeholders that must be edited (building a provider from one raises a clear error). The
+  `ollama` provider now also works for embeddings. API keys are only read from the
+  environment variable named in `api_key_env`; an `api_key` entry in a config is rejected.
+- **CLI.** `parsrag init --preset {offline,ollama,openai-compatible}`; `parsrag ingest`
+  updates a saved index in place (only new or changed documents are embedded), rebuilds it
+  automatically when chunking, embedding or stemming settings change, and gains `--prune`,
+  `--rebuild` and `--no-save`; new `parsrag remove ID...`; `parsrag ask --filter KEY=VALUE`.
+- **HTTP API.** `filters` on `POST /ask` and `/ask/stream` (part of the cache key),
+  `DELETE /documents/{id}`, and `"upsert": true` on `POST /ingest`.
+- **Grader.** `python -m grader progress [--root DIR]`: a table of every lesson with passed /
+  failed / not started, from running each lesson's tests against the learner's code;
+  untouched starters are recognised by fingerprints (`grader/starters.json`,
+  `python -m grader fingerprint-starters`).
+
+### Added — documentation
+
+- A Persian guide "PDFهای خودتان با Ollama" (your own PDFs with Ollama) on the docs site;
+  library, CLI and HTTP reference pages cover persistence, incremental ingestion, presets and
+  filters.
+- `docs/en/`: an English summary of every lesson (what you build, key ideas, the measured
+  results with the same numbers as the Persian lesson) and an English section in the site
+  navigation; linked from the README.
+- A "Challenges" section with two or three optional open-ended exercises at the end of every
+  lesson.
+- Coverage and mypy badges in both READMEs.
+
+### Added — course (since 0.1.0)
 
 - **14 RAG security** (lesson): indirect prompt injection hidden in retrieved documents.
   `parsrag.security` — Persian/English injection detection on normalised text, sanitising
@@ -31,6 +81,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- CI type-checks `src/parsrag` with mypy (most strict-mode checks, pydantic plugin; only
+  optional extras without type information are exempt) and runs `pytest --cov` with a 90%
+  floor; the docs deployment publishes the coverage badge data. Issues found by mypy were
+  fixed (typed TOML loading, float32 `embed_query` results, typed cached responses, a
+  streaming helper that yielded a sentinel object).
+- GitHub Actions updated to current majors (checkout v7, setup-python v7, upload-artifact
+  v7, download-artifact v8, upload-pages-artifact v5, deploy-pages v5), all on Node 24.
 - Web UI: blue theme with consistent hover/focus/disabled states (WCAG AA), title-only
   header, Persian-only error messages (API error codes are translated in the page) and a
   Persian, keyboard-accessible file picker.
@@ -97,5 +154,5 @@ release date is set when it is published (see `docs/RELEASING.md`).
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CITATION.cff`, issue and PR
   templates, and a social preview image (`scripts/make_social_preview.py`).
 
-[Unreleased]: https://github.com/snikookar/Persian-RAG-Academy/commits/main
+[0.2.0]: https://github.com/snikookar/Persian-RAG-Academy/commits/main
 [0.1.0]: https://github.com/snikookar/Persian-RAG-Academy/commits/main

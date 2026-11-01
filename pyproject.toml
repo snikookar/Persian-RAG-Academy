@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "parsrag"
-version = "0.1.0"
+version = "0.2.0"
 description = "Build, evaluate, and ship Retrieval-Augmented Generation (RAG) for Persian text — offline-first, with a free Persian course."
 # The PyPI readme is README.md with relative links made absolute (see the hook below).
 dynamic = ["readme"]
