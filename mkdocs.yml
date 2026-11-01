@@ -120,3 +120,20 @@ nav:
       - نمودارها و عددها: results.md
       - گزارش ارزیابی پایپ‌لاین: eval/report.md
   - واژه‌نامه: glossary.fa.md
+  - English:
+      - en/index.md
+      - "Setup": en/00-setup.md
+      - "RAG in 50 lines": en/01-rag-in-50-lines.md
+      - "Persian normalization": en/02-normalization.md
+      - "Loading documents": en/03-loading-documents.md
+      - "Chunking": en/04-chunking.md
+      - "Embeddings": en/05-embeddings.md
+      - "Vector stores": en/06-vector-stores.md
+      - "Hybrid search": en/07-hybrid-search.md
+      - "Reranking": en/08-reranking.md
+      - "Grounded generation": en/09-grounded-generation.md
+      - "Evaluation": en/10-evaluation.md
+      - "Agentic RAG": en/11-agentic-rag.md
+      - "Production API": en/12-production-api.md
+      - "Capstone": en/13-capstone.md
+      - "RAG security": en/14-rag-security.md
