@@ -22,8 +22,8 @@ from __future__ import annotations
 import math
 import re
 from collections import Counter
-from collections.abc import Callable, Iterable, Sequence
-from typing import Literal, Protocol, runtime_checkable
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any, Literal, Protocol, runtime_checkable
 
 from parsrag.normalize import ZWNJ, normalize
 from parsrag.stores.base import Filter, VectorStore, matches_filter
@@ -206,6 +206,45 @@ class BM25Retriever:
             self._lengths.append(len(tokens))
             for term in tf:
                 self._postings.setdefault(term, []).append(index)
+
+    def remove(self, ids: Iterable[str]) -> int:
+        """Remove chunks by id (no re-tokenising). Returns how many were removed."""
+        gone = set(ids)
+        keep = [i for i, c in enumerate(self._chunks) if c.id not in gone]
+        removed = len(self._chunks) - len(keep)
+        if removed:
+            self._restore(
+                [self._chunks[i] for i in keep],
+                [self._tfs[i] for i in keep],
+                [self._lengths[i] for i in keep],
+            )
+        return removed
+
+    def _restore(self, chunks: list[Chunk], tfs: list[Counter[str]], lengths: list[int]) -> None:
+        self._chunks, self._tfs, self._lengths = chunks, tfs, lengths
+        self._postings = {}
+        for index, tf in enumerate(tfs):
+            for term in tf:
+                self._postings.setdefault(term, []).append(index)
+
+    def state(self) -> dict[str, Any]:
+        """The tokenised index as plain JSON data (chunk ids, term counts, lengths)."""
+        return {
+            "k1": self.k1,
+            "b": self.b,
+            "ids": [c.id for c in self._chunks],
+            "tfs": [dict(tf) for tf in self._tfs],
+            "lengths": list(self._lengths),
+        }
+
+    def load_state(self, state: Mapping[str, Any], chunks: Sequence[Chunk]) -> None:
+        """Restore :meth:`state` for ``chunks`` (same ids, same order) without re-tokenising."""
+        if [c.id for c in chunks] != list(state["ids"]):
+            raise ValueError("BM25 state does not match the chunks")
+        self.k1, self.b = float(state["k1"]), float(state["b"])
+        self._restore(
+            list(chunks), [Counter(tf) for tf in state["tfs"]], [int(n) for n in state["lengths"]]
+        )
 
     def scores(self, query: str) -> dict[int, float]:
         """``{chunk index: BM25 score}`` for every chunk that shares a term with ``query``."""

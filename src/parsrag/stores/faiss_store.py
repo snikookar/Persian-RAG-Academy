@@ -115,6 +115,23 @@ class FaissVectorStore:
         self._chunks.extend(new)
         self._ids = seen
 
+    def delete(self, ids: Iterable[str]) -> int:
+        """Remove chunks by id (the FAISS index is rebuilt from the kept vectors).
+
+        Returns how many chunks were removed; unknown ids are ignored.
+        """
+        gone = set(ids) & self._ids
+        if not gone:
+            return 0
+        keep = [i for i, c in enumerate(self._chunks) if c.id not in gone]
+        kept_chunks = [self._chunks[i] for i in keep]
+        vectors = self.index.reconstruct_batch(np.asarray(keep, dtype=np.int64)) if keep else None
+        self._chunks, self._ids = [], set()
+        self.index = self._new_index()
+        if kept_chunks:
+            self.add(kept_chunks, vectors)
+        return len(gone)
+
     def _exact_filtered(self, query: FloatArray, k: int, flt: Filter | None) -> list[SearchResult]:
         """Brute-force fallback: score every chunk that passes ``flt``."""
         ids = [i for i, c in enumerate(self._chunks) if matches_filter(c, flt)]
