@@ -19,6 +19,17 @@ Defaults are the choices measured in lessons 02–09:
 * no prompt-injection guard unless you opt in with ``guard=True`` or an
   :class:`~parsrag.security.InjectionGuard` (lesson 14).
 
+Working on real data:
+
+* :meth:`PersianRAG.save` / :meth:`PersianRAG.load` persist documents, chunks,
+  vectors, the BM25 index and the configuration (a versioned folder format,
+  :data:`INDEX_FORMAT_VERSION`), so a large collection is embedded once;
+* :meth:`PersianRAG.upsert_documents` adds new documents, re-indexes changed
+  ones (content hash) and skips unchanged ones; :meth:`PersianRAG.remove_documents`
+  deletes by id;
+* ``rag.ask(question, filters={"lang": "fa"})`` restricts retrieval by document
+  or chunk metadata (:meth:`PersianRAG.resolve_filter`).
+
 Every part can be replaced with a keyword argument (``embedding``, ``llm``,
 ``chunker``, ``store``, ``reranker``). The default LLM is the offline
 extractive :class:`~parsrag.llm.FakeLLM` — it copies a sentence from the
@@ -27,8 +38,11 @@ context, which is enough for tests and demos, not for users.
 
 from __future__ import annotations
 
+import hashlib
 import json
+import shutil
 import time
+import uuid
 from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -62,6 +76,73 @@ from parsrag.stores.memory import InMemoryVectorStore
 from parsrag.types import Chunk, Document, SearchResult
 
 DEFAULT = object()  # "use the course default" (``None`` means "turn it off")
+
+#: Version of the folder written by :meth:`PersianRAG.save`. Version 1 (0.1.0)
+#: had no number and stored only documents, options and in-memory vectors;
+#: :meth:`PersianRAG.load` still reads it.
+INDEX_FORMAT_VERSION = 2
+
+#: Filter keys that refer to chunks (everything else refers to document metadata).
+CHUNK_FILTER_KEYS = frozenset(
+    {"id", "doc_id", "start", "end", "index", "page", "section", "section_path", "chunker",
+     "window", "window_start", "window_end"}
+)  # fmt: skip
+
+
+def document_hash(doc: Document) -> str:
+    """SHA-256 of a document's text, title and metadata (``source`` path excluded).
+
+    Used by :meth:`PersianRAG.upsert_documents` to skip unchanged documents. The
+    file path is left out so that indexing the same folder from another working
+    directory does not count as a change.
+    """
+    meta = {k: v for k, v in doc.metadata.items() if k != "source"}
+    payload = json.dumps(
+        {"text": doc.text, "title": doc.title, "metadata": meta},
+        ensure_ascii=False,
+        sort_keys=True,
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _as_set(value: Any) -> set[Any]:
+    return set(value) if isinstance(value, (list, tuple, set, frozenset)) else {value}
+
+
+def _document_matches(doc: Document, conditions: Mapping[str, Any]) -> bool:
+    """Equality / any-of on ``doc.title`` or ``doc.metadata``; list values match by overlap."""
+    for key, wanted in conditions.items():
+        value = doc.title if key == "title" else doc.metadata.get(key)
+        allowed = _as_set(wanted)
+        if isinstance(value, (list, tuple, set, frozenset)):
+            if not allowed & set(value):
+                return False
+        elif value not in allowed:
+            return False
+    return True
+
+
+class IndexUpdate(BaseModel):
+    """What :meth:`PersianRAG.upsert_documents` (or ``parsrag ingest``) changed."""
+
+    added: list[str] = Field(default_factory=list)
+    updated: list[str] = Field(default_factory=list)
+    unchanged: list[str] = Field(default_factory=list)
+    removed: list[str] = Field(default_factory=list)
+    chunks_added: int = 0
+    chunks_removed: int = 0
+
+    @property
+    def changed(self) -> bool:
+        return bool(self.added or self.updated or self.removed)
+
+    def summary(self) -> str:
+        return (
+            f"added {len(self.added)}, updated {len(self.updated)}, "
+            f"unchanged {len(self.unchanged)}, removed {len(self.removed)} documents "
+            f"(+{self.chunks_added} / -{self.chunks_removed} chunks)"
+        )
 
 
 class EmptyIndexError(RuntimeError):
@@ -130,10 +211,12 @@ class PersianRAG:
         self.heading_context = heading_context
         self.preprocess: Callable[[str], str] | None = normalize if normalize_text else None
         self.min_score = min_score
+        self.stem = stem
         self.bm25 = BM25Retriever(tokenizer=PersianTokenizer(stem=stem))
         self.documents: dict[str, Document] = {}
         self.index_version = 0
         self._chunks: list[Chunk] = []
+        self._hashes: dict[str, str] = {}
         self.add_documents(documents)
 
     # ------------------------------------------------------------ constructors
@@ -154,22 +237,7 @@ class PersianRAG:
     ) -> PersianRAG:  # fmt: skip
         """Build from a ``parsrag.toml`` (see :mod:`parsrag.config`); ``overrides`` win."""
         cfg = load_config(source)
-        rr = cfg.retrieval
-        kwargs: dict[str, Any] = {
-            "embedding": make_embedding(cfg.embedding),
-            "chunker": RecursiveChunker(cfg.chunking.size, cfg.chunking.overlap),
-            "k": rr.k,
-            "fetch_k": rr.fetch_k,
-            "stem": rr.stem,
-            "heading_context": cfg.chunking.heading_context,
-            "normalize_text": cfg.chunking.normalize,
-            "min_score": rr.min_score,
-            "reranker": _make_reranker(rr.rerank, rr.cross_encoder),
-            "config": cfg,
-            "guard": cfg.security.make_guard(),
-        }
-        if "llm" not in overrides:
-            kwargs["llm"] = make_llm(cfg.llm)
+        kwargs = _config_kwargs(cfg, skip=overrides)
         kwargs.update(overrides)
         rag = cls(**kwargs)
         if load_documents:
@@ -240,6 +308,118 @@ class PersianRAG:
                 added += self.add_path(item)
         return added + (self._index(batch) if batch else 0)
 
+    @staticmethod
+    def _resolve_documents(documents: Iterable[Document | str | Path]) -> list[Document]:
+        """Documents as given; strings and paths are loaded (files or folders, lesson 03)."""
+        from parsrag.loaders import load_directory, load_document
+
+        docs: list[Document] = []
+        for item in documents:
+            if isinstance(item, Document):
+                docs.append(item)
+                continue
+            p = Path(item)
+            if p.is_dir():
+                docs.extend(load_directory(p))
+            elif p.is_file():
+                docs.append(load_document(p))
+            else:
+                raise FileNotFoundError(f"no such file or folder: {p}")
+        return docs
+
+    def upsert_documents(
+        self, documents: Iterable[Document | str | Path], *, prune: bool = False
+    ) -> IndexUpdate:
+        """Bring the index up to date with ``documents`` without redoing unchanged work.
+
+        * a new id is chunked, embedded and indexed;
+        * a known id whose content hash (:func:`document_hash`) changed has its
+          old chunks removed and is indexed again;
+        * a known id with the same hash is skipped — nothing is re-embedded;
+        * with ``prune=True`` indexed documents that are *not* in ``documents``
+          are removed (a folder sync).
+
+        Strings and paths are loaded like in :meth:`add_documents`. TF-IDF style
+        embeddings (with ``fit``) still refit on the whole collection when
+        something changed — that is how they work.
+        """
+        docs = self._resolve_documents(documents)
+        ids = [d.id for d in docs]
+        dupes = sorted({i for i in ids if ids.count(i) > 1})
+        if dupes:
+            raise ValueError(f"duplicate document ids in the batch: {', '.join(dupes)}")
+        report = IndexUpdate()
+        changed: list[Document] = []
+        for doc in docs:
+            if doc.id not in self.documents:
+                report.added.append(doc.id)
+                changed.append(doc)
+            elif self._hashes.get(doc.id) == document_hash(doc):
+                report.unchanged.append(doc.id)
+            else:
+                report.updated.append(doc.id)
+                changed.append(doc)
+        stale = [i for i in self.documents if i not in set(ids)] if prune else []
+        if report.updated or stale:
+            self._check_can_delete()
+        if stale:
+            report.removed = stale
+        report.chunks_removed = self._remove(report.updated + stale)
+        report.chunks_added = self._index(changed) if changed else 0
+        if not changed and report.chunks_removed:
+            self.index_version += 1
+        return report
+
+    def remove_documents(self, ids: Iterable[str], *, missing_ok: bool = False) -> int:
+        """Delete documents (and their chunks and vectors) by id. Returns the chunks removed.
+
+        Unknown ids raise ``KeyError`` unless ``missing_ok``.
+        """
+        wanted = list(dict.fromkeys(ids))
+        missing = [i for i in wanted if i not in self.documents]
+        if missing and not missing_ok:
+            raise KeyError(f"documents not in the index: {', '.join(missing)}")
+        present = [i for i in wanted if i in self.documents]
+        if not present:
+            return 0
+        self._check_can_delete()
+        removed = self._remove(present)
+        self.index_version += 1
+        return removed
+
+    def remove_document(self, doc_id: str) -> int:
+        """Delete one document by id (``KeyError`` if it is not indexed)."""
+        return self.remove_documents([doc_id])
+
+    def _check_can_delete(self) -> None:
+        store = self._store
+        if store is not None and not self._fit_pending and not hasattr(store, "delete"):
+            raise NotImplementedError(
+                f"{type(self._store).__name__} cannot delete chunks; rebuild the index instead"
+            )
+
+    def _remove(self, doc_ids: Sequence[str]) -> int:
+        """Drop documents and their chunks from every index (no version bump)."""
+        if not doc_ids:
+            return 0
+        gone_docs = set(doc_ids)
+        gone = [c.id for c in self._chunks if c.doc_id in gone_docs]
+        self._chunks = [c for c in self._chunks if c.doc_id not in gone_docs]
+        for doc_id in gone_docs:
+            self.documents.pop(doc_id, None)
+            self._hashes.pop(doc_id, None)
+        self.bm25.remove(gone)
+        if self._fit_pending:
+            if self._chunks:
+                self.embedding.fit([c.text for c in self._chunks])  # type: ignore[attr-defined]
+                self.store = InMemoryVectorStore(self.embedding)
+                self.store.add(self._chunks)
+            else:
+                self._store = None
+        elif self._store is not None and gone:
+            self._store.delete(gone)  # type: ignore[attr-defined]
+        return len(gone)
+
     def add_texts(self, texts: Sequence[str], ids: Sequence[str] | None = None) -> int:
         """Index raw strings as documents (ids default to ``text-<n>``)."""
         start = len(self.documents)
@@ -264,6 +444,7 @@ class PersianRAG:
         ]
         for d in docs:
             self.documents[d.id] = d
+            self._hashes[d.id] = document_hash(d)
         self._chunks.extend(chunks)
         if self._fit_pending:
             # TF-IDF style models must see the whole collection: refit and re-embed.
@@ -311,19 +492,60 @@ class PersianRAG:
                 "the index is empty — add documents first / هنوز سندی اضافه نشده است"
             )
 
-    def search(
-        self, query: str, k: int | None = None, *, filter: Filter | None = None
-    ) -> list[SearchResult]:
-        """Hybrid + reranked search."""
-        self._check_index()
-        return self.retriever.search(query, k or self.k, filter=filter)
+    def resolve_filter(self, filters: Filter | None) -> Filter | None:
+        """Turn a metadata filter into one every store understands.
 
-    def ask(self, question: str, *, timings: Timings | None = None) -> GroundedAnswer:
-        """Answer with citations, or «نمی‌دانم». Pass ``timings`` to get per-stage latency."""
+        A dict may mix chunk keys (:data:`CHUNK_FILTER_KEYS`: ``doc_id``,
+        ``section``, ``page``, ...) with document keys (``title`` or anything in
+        ``Document.metadata``, e.g. ``format`` or your own ``lang``/``tags``).
+        Document conditions are evaluated here, on :attr:`documents`, and become a
+        ``doc_id`` list, so they also work with database stores. Values are
+        equality, a list means "any of these", and a list-valued metadata field
+        (``tags``) matches when it shares a value. Callables pass through unchanged.
+        """
+        if filters is None or callable(filters):
+            return filters
+        chunk_part = {k: v for k, v in filters.items() if k in CHUNK_FILTER_KEYS}
+        doc_part = {k: v for k, v in filters.items() if k not in CHUNK_FILTER_KEYS}
+        if not doc_part:
+            return chunk_part or None
+        allowed = [d.id for d in self.documents.values() if _document_matches(d, doc_part)]
+        if "doc_id" in chunk_part:
+            wanted = _as_set(chunk_part["doc_id"])
+            allowed = [i for i in allowed if i in wanted]
+        chunk_part["doc_id"] = allowed
+        return chunk_part
+
+    def search(
+        self,
+        query: str,
+        k: int | None = None,
+        *,
+        filter: Filter | None = None,
+        filters: Filter | None = None,
+    ) -> list[SearchResult]:
+        """Hybrid + reranked search, optionally restricted by metadata (:meth:`resolve_filter`)."""
+        self._check_index()
+        flt = self.resolve_filter(filters if filters is not None else filter)
+        return self.retriever.search(query, k or self.k, filter=flt)
+
+    def ask(
+        self,
+        question: str,
+        *,
+        timings: Timings | None = None,
+        filters: Filter | None = None,
+    ) -> GroundedAnswer:
+        """Answer with citations, or «نمی‌دانم». Pass ``timings`` to get per-stage latency.
+
+        ``filters`` restricts retrieval to matching documents or chunks, e.g.
+        ``{"doc_id": ["faq", "terms"]}`` or ``{"lang": "fa", "tags": "billing"}``
+        (:meth:`resolve_filter`). If nothing matches, the answer abstains.
+        """
         self._check_index()
         t0 = time.perf_counter()
         gen = self.generator
-        results = gen.retriever.search(question, gen.k)
+        results = gen.retriever.search(question, gen.k, filter=self.resolve_filter(filters))
         t1 = time.perf_counter()
         answer = gen.answer_from(question, results)
         t2 = time.perf_counter()
@@ -334,7 +556,7 @@ class PersianRAG:
             timings.llm_calls = 0 if answer.abstain_reason in ("no_results", "low_score") else 1
         return answer
 
-    def stream(self, question: str) -> Iterator[StreamEvent]:
+    def stream(self, question: str, *, filters: Filter | None = None) -> Iterator[StreamEvent]:
         """Like :meth:`ask`, but yields ``sources``, then answer ``token``\\s, then ``done``.
 
         ``done`` carries the final :class:`GroundedAnswer` (citations checked
@@ -345,7 +567,7 @@ class PersianRAG:
         """
         self._check_index()
         gen = self.generator
-        results = gen.retriever.search(question, gen.k)
+        results = gen.retriever.search(question, gen.k, filter=self.resolve_filter(filters))
         yield StreamEvent(type="sources", data=results)
         early, top = gen.precheck(question, results)
         if early is not None:
@@ -396,35 +618,179 @@ class PersianRAG:
     # ------------------------------------------------------------ persistence
 
     def save(self, directory: str | Path) -> None:
-        """Write documents, options and (for in-memory stores) the vectors to ``directory``."""
-        path = Path(directory)
-        path.mkdir(parents=True, exist_ok=True)
-        with (path / "documents.jsonl").open("w", encoding="utf-8") as f:
-            for doc in self.documents.values():
-                f.write(doc.model_dump_json() + "\n")
-        options = {
-            "k": self.k,
-            "fetch_k": self.fetch_k,
-            "min_score": self.min_score,
-            "heading_context": self.heading_context,
-            "normalize_text": self.preprocess is not None,
-            "embedding": type(self.embedding).__name__,
-            "n_chunks": len(self._chunks),
-        }
-        (path / "rag.json").write_text(json.dumps(options, indent=2) + "\n", encoding="utf-8")
-        if isinstance(self._store, InMemoryVectorStore):
-            self._store.save(path / "store")
+        """Write the whole index to ``directory`` (format :data:`INDEX_FORMAT_VERSION`).
+
+        ============== ======================================================
+        ``rag.json``   format version, options, content hashes, configuration
+        ``documents``  ``documents.jsonl`` — the original documents
+        ``chunks``     ``chunks.jsonl`` — chunks exactly as indexed
+        ``bm25.json``  the tokenised BM25 index (no re-tokenising on load)
+        ``store/``     vectors of an in-memory or FAISS store
+        ============== ======================================================
+
+        The folder is written next to the target and swapped in at the end, so
+        an interrupted save never leaves a half-written index behind.
+        """
+        from parsrag import __version__
+
+        target = Path(directory)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        tmp = target.with_name(f".{target.name}.tmp-{uuid.uuid4().hex[:8]}")
+        tmp.mkdir()
+        try:
+            with (tmp / "documents.jsonl").open("w", encoding="utf-8") as f:
+                for doc in self.documents.values():
+                    f.write(doc.model_dump_json() + "\n")
+            with (tmp / "chunks.jsonl").open("w", encoding="utf-8") as f:
+                for chunk in self._chunks:
+                    f.write(chunk.model_dump_json() + "\n")
+            (tmp / "bm25.json").write_text(
+                json.dumps(self.bm25.state(), ensure_ascii=False), encoding="utf-8"
+            )
+            store_kind = None
+            if self._store is not None and _store_kind(self._store) is not None:
+                self._store.save(tmp / "store")  # type: ignore[attr-defined]
+                store_kind = _store_kind(self._store)
+            options = {
+                "format_version": INDEX_FORMAT_VERSION,
+                "parsrag_version": __version__,
+                "k": self.k,
+                "fetch_k": self.fetch_k,
+                "min_score": self.min_score,
+                "heading_context": self.heading_context,
+                "normalize_text": self.preprocess is not None,
+                "stem": self.stem,
+                "embedding": type(self.embedding).__name__,
+                "store": store_kind,
+                "n_chunks": len(self._chunks),
+                "index_version": self.index_version,
+                "hashes": dict(self._hashes),
+                "config": self.config.model_dump(mode="json"),
+            }
+            (tmp / "rag.json").write_text(
+                json.dumps(options, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+            old = None
+            if target.exists():
+                old = target.with_name(f".{target.name}.old-{uuid.uuid4().hex[:8]}")
+                target.rename(old)
+            tmp.rename(target)
+            if old is not None:
+                shutil.rmtree(old, ignore_errors=True)
+        finally:
+            if tmp.exists():
+                shutil.rmtree(tmp, ignore_errors=True)
+
+    @staticmethod
+    def index_info(directory: str | Path) -> dict[str, Any]:
+        """The ``rag.json`` of a saved index (``format_version`` is 1 for 0.1.0 indexes)."""
+        info = json.loads((Path(directory) / "rag.json").read_text("utf-8"))
+        info.setdefault("format_version", 1)
+        return dict(info)
 
     @classmethod
     def load(cls, directory: str | Path, **kwargs: Any) -> PersianRAG:
-        """Load an index written by :meth:`save`.
+        """Load an index written by :meth:`save` — nothing is re-chunked or re-embedded.
 
-        Pass the same ``embedding``/``chunker`` as when saving (the defaults if
-        you used them). Chunks are rebuilt from the documents (cheap and
-        deterministic); saved vectors are reused when they match.
+        Without keyword arguments the saved configuration rebuilds every part
+        (embedding, reranker, LLM, guard, chunker for documents added later), and
+        the saved options (``k``, ``min_score``, ...) are restored. Keyword
+        arguments override both, e.g. ``llm=`` for another model. The embedding
+        must be the one the index was built with; a different embedding class
+        raises ``ValueError``, and saved vectors whose dimension does not match
+        are recomputed from the saved chunks.
+
+        Passing ``chunker``, ``heading_context`` or ``normalize_text`` re-chunks the
+        documents; if that gives other chunks, the index is rebuilt (re-embedded).
+        Folders from parsrag 0.1.0 (format 1) still load; they are re-chunked
+        from the documents with the given (or default) chunker.
         """
         path = Path(directory)
-        options = json.loads((path / "rag.json").read_text("utf-8"))
+        options = cls.index_info(path)
+        version = int(options["format_version"])
+        if version == 1:
+            return cls._load_v1(path, options, kwargs)
+        if version > INDEX_FORMAT_VERSION:
+            raise ValueError(
+                f"{path} uses index format {version}, newer than this parsrag supports "
+                f"({INDEX_FORMAT_VERSION}); upgrade parsrag or rebuild the index"
+            )
+        if "config" not in kwargs and options.get("config") is not None:
+            kwargs["config"] = RAGConfig.model_validate(options["config"])
+        cfg: RAGConfig = kwargs.get("config") or RAGConfig()
+        user_embedding = "embedding" in kwargs
+        rechunk = any(k in kwargs for k in ("chunker", "heading_context", "normalize_text"))
+        for key in ("k", "fetch_k", "min_score", "heading_context", "normalize_text", "stem"):
+            if key in options:
+                kwargs.setdefault(key, options[key])
+        for key, value in _config_kwargs(cfg, skip=kwargs).items():
+            kwargs.setdefault(key, value)
+        saved_embedding = options.get("embedding")
+        if not user_embedding and saved_embedding != type(kwargs["embedding"]).__name__:
+            raise ValueError(
+                f"{path} was built with {saved_embedding}, but its configuration makes "
+                f"{type(kwargs['embedding']).__name__}; pass embedding=... to load it"
+            )
+        user_store = kwargs.get("store")
+        rag = cls(**kwargs)
+        with (path / "documents.jsonl").open(encoding="utf-8") as f:
+            docs = [Document.model_validate_json(line) for line in f if line.strip()]
+        with (path / "chunks.jsonl").open(encoding="utf-8") as f:
+            chunks = [Chunk.model_validate_json(line) for line in f if line.strip()]
+        if rechunk:  # the caller changed how documents are chunked: rebuild if it matters
+            fresh = [
+                c
+                for d in docs
+                for c in chunk_document(
+                    d, rag.chunker, preprocess=rag.preprocess, heading_context=rag.heading_context
+                )
+            ]
+            if [(c.id, c.text) for c in fresh] != [(c.id, c.text) for c in chunks]:
+                rag.add_documents(docs)
+                return rag
+        rag.documents = {d.id: d for d in docs}
+        saved_hashes = options.get("hashes") or {}
+        rag._hashes = {d.id: saved_hashes.get(d.id) or document_hash(d) for d in docs}
+        rag._chunks = chunks
+        bm25_file = path / "bm25.json"
+        if bm25_file.is_file() and options.get("stem") == rag.stem:
+            rag.bm25.load_state(json.loads(bm25_file.read_text("utf-8")), chunks)
+        else:
+            rag.bm25.add(chunks)
+        if chunks:
+            rag._restore_vectors(path / "store", options.get("store"), chunks, user_store)
+        rag.index_version = int(options.get("index_version") or 1)
+        return rag
+
+    def _restore_vectors(
+        self, store_dir: Path, kind: str | None, chunks: list[Chunk], user_store: Any
+    ) -> None:
+        if self._fit_pending:  # TF-IDF style: refit on the saved chunks (deterministic)
+            self.embedding.fit([c.text for c in chunks])  # type: ignore[attr-defined]
+            self.store = InMemoryVectorStore(self.embedding)
+            self.store.add(chunks)
+            return
+        store = self.store
+        if len(store):
+            if len(store) != len(chunks):
+                raise ValueError(
+                    f"the given store holds {len(store)} chunks, the index {len(chunks)}"
+                )
+            return  # a persistent store (e.g. a database) that is already filled
+        loader = getattr(type(store), "load", None)
+        if store_dir.is_dir() and kind is not None and kind == _store_kind(store) and loader:
+            try:
+                saved = loader(store_dir, self.embedding)
+            except ValueError:  # e.g. another dimension: fall through and re-embed
+                saved = None
+            if saved is not None and [c.id for c in saved.chunks] == [c.id for c in chunks]:
+                self.store = saved
+                return
+        store.add(chunks)
+
+    @classmethod
+    def _load_v1(cls, path: Path, options: dict[str, Any], kwargs: dict[str, Any]) -> PersianRAG:
+        """Indexes saved by parsrag 0.1.0 (no format number, no chunks or BM25 state)."""
         for key in ("k", "fetch_k", "min_score", "heading_context", "normalize_text"):
             kwargs.setdefault(key, options[key])
         rag = cls(**kwargs)
@@ -452,11 +818,46 @@ class PersianRAG:
             rag.add_documents(docs)  # chunker changed since saving: rebuild
             return rag
         rag.documents = {d.id: d for d in docs}
+        rag._hashes = {d.id: document_hash(d) for d in docs}
         rag._chunks = chunks
         rag.store = saved
         rag.bm25.add(chunks)
         rag.index_version += 1
         return rag
+
+
+def _store_kind(store: Any) -> str | None:
+    """``"memory"`` / ``"faiss"`` for stores whose vectors live in the index folder."""
+    if isinstance(store, InMemoryVectorStore):
+        return "memory"
+    if type(store).__name__ == "FaissVectorStore":
+        return "faiss"
+    return None
+
+
+def _config_kwargs(cfg: RAGConfig, *, skip: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """``PersianRAG`` keyword arguments described by ``cfg`` (parts in ``skip`` are not built)."""
+    rr = cfg.retrieval
+    kwargs: dict[str, Any] = {
+        "k": rr.k,
+        "fetch_k": rr.fetch_k,
+        "stem": rr.stem,
+        "heading_context": cfg.chunking.heading_context,
+        "normalize_text": cfg.chunking.normalize,
+        "min_score": rr.min_score,
+        "config": cfg,
+    }
+    builders: dict[str, Callable[[], Any]] = {
+        "embedding": lambda: make_embedding(cfg.embedding),
+        "chunker": lambda: RecursiveChunker(cfg.chunking.size, cfg.chunking.overlap),
+        "reranker": lambda: _make_reranker(rr.rerank, rr.cross_encoder),
+        "guard": lambda: cfg.security.make_guard(),
+        "llm": lambda: make_llm(cfg.llm),
+    }
+    for key, build in builders.items():
+        if key not in (skip or {}):
+            kwargs[key] = build()
+    return kwargs
 
 
 def _make_reranker(kind: str, model: str | None) -> Reranker | None:
@@ -498,11 +899,15 @@ def answer_payload(rag: PersianRAG, answer: GroundedAnswer) -> AnswerPayload:
 
 
 __all__ = [
+    "CHUNK_FILTER_KEYS",
+    "INDEX_FORMAT_VERSION",
     "AnswerPayload",
     "EmptyIndexError",
+    "IndexUpdate",
     "PersianRAG",
     "StreamEvent",
     "Timings",
     "answer_payload",
+    "document_hash",
     "validate_qa",
 ]
