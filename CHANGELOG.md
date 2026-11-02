@@ -4,7 +4,7 @@ All notable changes to `parsrag` and the Persian RAG Academy course are document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - unreleased
+## [0.2.0] - 2026-11-02
 
 Makes `PersianRAG` usable on real data (a saved, incrementally updated index, presets for
 real models, metadata filters), adds type checking and coverage to CI, English lesson
