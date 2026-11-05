@@ -46,8 +46,14 @@ the index costs word TF-IDF 0.156 MRR.
 On the paraphrase set (46 answerable questions, different wording) passage MRR drops to 0.349
 (hashing), 0.435 (word TF-IDF) and 0.472 (char TF-IDF): lexical methods roughly halve.
 
-The lesson's real-model table (multilingual E5, BGE-M3, MiniLM, ...) is **intentionally empty**
-until someone contributes an actual run of the notebook; no real-model number was invented.
+The lesson's real-model table holds one measured CPU run of the notebook (2026-11-04, parsrag
+0.2.0, commit `449c38c`) for multilingual E5 small and base and MiniLM; BGE-M3 was not run
+because of its download size. `multilingual-e5-base` scores passage MRR 0.953 on the original
+set and 0.772 on paraphrases, against 0.883 and 0.472 for char TF-IDF. The paired bootstrap
+difference is +0.070 [+0.008, +0.142] and +0.300 [+0.171, +0.423]. The corpus is small and
+synthetic, so measure again on your own questions before choosing a model. Raw results:
+[`results.json`](../eval/real_embeddings/results.json) and
+[`paired.json`](../eval/real_embeddings/paired.json).
 
 ## Takeaway
 

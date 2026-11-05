@@ -4,6 +4,16 @@ All notable changes to `parsrag` and the Persian RAG Academy course are document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Lesson 05's results table now has measured rows for `multilingual-e5-small`,
+  `multilingual-e5-base` and `paraphrase-multilingual-MiniLM-L12-v2` (CPU, commit `449c38c`), with
+  paired bootstrap comparisons against the best offline baseline.
+  `examples/benchmark_real_paired.py` produces them; raw output is in
+  `docs/eval/real_embeddings/`.
+
 ## [0.2.0] - 2026-11-02
 
 Makes `PersianRAG` usable on real data (a saved, incrementally updated index, presets for
