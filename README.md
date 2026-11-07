@@ -126,9 +126,6 @@ pip install parsrag                       # core: pydantic + numpy only
 pip install "parsrag[loaders,openai]"     # PDF/DOCX/HTML + any OpenAI-compatible model
 ```
 
-> `parsrag` is not on PyPI yet; until the first release, install from a clone with
-> `pip install -e .`.
-
 ```python
 from parsrag import PersianRAG
 

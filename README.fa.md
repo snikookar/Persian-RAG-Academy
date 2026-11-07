@@ -107,8 +107,6 @@ pip install parsrag                       # فقط pydantic و numpy
 pip install "parsrag[loaders,openai]"     # PDF/DOCX/HTML و هر مدل سازگار با OpenAI
 ```
 
-> `parsrag` هنوز روی PyPI منتشر نشده است؛ تا نسخهٔ اول، از داخل مخزن با `pip install -e .` نصب کنید.
-
 ```python
 from parsrag import PersianRAG
 
